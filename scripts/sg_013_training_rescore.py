@@ -187,7 +187,7 @@ def cmd_report(_a):
     out = {"schema_version": 1, "date": "2026-11-14",
            "scope": "all logged GRPO training answers of the 10 runs (jobs/runs/*/completions.jsonl); MBPP sanitized "
                     "test_list, training's secure_all call shape; logged = secure_all as logged in training "
-                    "(securegrade 0.1.0 core runs, 0.1.1 H pair, on the RunPod container)",
+                    "(securegrade 0.1.0 core runs, 0.1.1 H pair, on the training containers (HF Jobs for the eight core runs, RunPod for the H pair))",
            "runtime": {"python": sys.version.split()[0], "kernel": platform.release()},
            "inputs_sha256": {f"jobs/runs/{r}/completions.jsonl": hashlib.sha256(
                (ROOT / "jobs" / "runs" / r / "completions.jsonl").read_bytes()).hexdigest() for r in RUNS},

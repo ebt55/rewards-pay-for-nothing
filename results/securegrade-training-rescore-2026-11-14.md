@@ -13,7 +13,7 @@ Script: `scripts/sg_013_training_rescore.py`. Raw: `securegrade-training-rescore
 
 | | Answers | Full score (≥ 0.999) |
 |---|---:|---:|
-| Logged in training (0.1.0 / 0.1.1, RunPod container) | 32,000 | 12,700 |
+| Logged in training (0.1.0 / 0.1.1; HF Jobs for the core runs, RunPod for the H pair) | 32,000 | 12,700 |
 | securegrade 0.1.2 (WSL) | 32,000 | 12,703 |
 | securegrade 0.1.3 (WSL) | 32,000 | 12,703 |
 
@@ -24,7 +24,7 @@ Script: `scripts/sg_013_training_rescore.py`. Raw: `securegrade-training-rescore
   version, they moved within one version (h-ship-s0:238 gave 0.33, 0.67, 0.33 under 0.1.2; e-sec-s1:2537
   gave 0.33, 0.0, 0.0 under 0.1.3).
 - **Logged vs 0.1.3: 5 differences, all scored higher now.** Four import `numpy` (u-ship-s0:1098,
-  u-sec-s0:273, e-ship-s1:2385, u-sec-s1:1341). They scored 0.0 in the training container and pass here.
+  u-sec-s0:273, e-ship-s1:2385, u-sec-s1:1341). They scored 0.0 when logged in training (core runs, securegrade 0.1.0 on HF Jobs) and pass here.
   Three of them are among the six hand-labelled numpy items already in `scripts/replay_release.py`
   (`SIX_FN`). The fifth is the `random` answer e-sec-s1:2537 above. One of the four (u-sec-s0:273, a
   securegrade arm) is correct code that the training reward paid 0.0: the error ran against the model, not
