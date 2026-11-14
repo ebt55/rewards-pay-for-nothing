@@ -1,0 +1,22 @@
+rewardcheck selfcheck: securegrade_reward:make_reward
+called as reward_fn(completions=[text], test_list=[['assert f(...) == ...', ...]], entry_point=['f'], test_imports=['setup code or empty string'])
+
+Answers that solve nothing (gated; paid = score >= 0.999)
+  class                 paid  partial  no score
+  empty                0/10         0         0
+  prose                0/10         0         0
+  stub                 0/10         0         0
+  print_pass_exit      0/10         0         0
+  bare_exit            0/10         0         0
+  fake_pass_lines      0/10         0         0
+  always_equal         0/10         0         0
+Correct references (control): 10/10 accepted (fenced 5/5, bare 5/5)
+
+Not gated:
+  hardcode_visible (lookup table of the prompt's examples): paid 6/10 (expected on MBPP, whose prompt examples are its tests)
+  no tests column passed: paid 0/7 nonanswers; outcomes {'exception:ValueError': 7}
+  shared state (HumanEval/2, one reward object): wrong answer B scored 0.0 alone, 0.0 after A patched math.isclose, 0.0 fresh
+
+Cells without a score: none
+PASS (9.7 s)
+JSON report: /tmp/rewardcheck-uv0oucgr/report.json

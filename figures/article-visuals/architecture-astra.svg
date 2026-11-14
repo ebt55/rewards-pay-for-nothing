@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1472" height="1160" viewBox="0 0 1472 1160" role="img" aria-labelledby="title desc">
+<title id="title">The training loop, independent audit, and securegrade caller boundary</title>
+<desc id="desc">MBPP task and first-assert prompts enter Tiny Aya Global with LoRA. Completions and full tests enter one selected historical AlignTune or securegrade callback. Numeric rewards feed AlignTune/TRL GRPO and a LoRA update. rewardcheck separately audits AlignTune, SafeTune and securegrade. Trusted tests and expected values remain in the securegrade caller. Arguments cross to a fresh candidate interpreter; untrusted return data is validated, decoded into built-ins and compared in the caller.</desc>
+<rect width="1472" height="1160" fill="#F6F3EB"/>
+<text x="64.00" y="56" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#616A6E">01 / TRAINING + AUDIT</text>
+<text x="64.00" y="127" font-family="Arial,sans-serif" font-size="52" font-weight="700" fill="#20282D">Where the reward enters training</text>
+<polyline points="64,158 1408,158" fill="none" stroke="#20282D" stroke-width="2"/>
+<polyline points="455,570 32,570 32,196 780,196 780,244" fill="none" stroke="#2458C6" stroke-width="3"/>
+<polygon points="780,244 773.4755169883315,230.49329346470984 786.5244830116685,230.49329346470984" fill="#2458C6" stroke="none" stroke-width="2"/>
+<text x="67.00" y="195" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#2458C6">LoRA update</text>
+<text x="64.00" y="274" font-family="Arial,sans-serif" font-size="31" font-weight="700" fill="#20282D">MBPP training row</text>
+<rect x="76" y="310" width="254" height="153" rx="0" fill="#E7E7DF" stroke="#CBCDC7" stroke-width="2"/>
+<rect x="70" y="303" width="254" height="153" rx="0" fill="#FFFEFA" stroke="#CBCDC7" stroke-width="2"/>
+<rect x="64" y="296" width="254" height="153" rx="0" fill="#FFFEFA" stroke="#20282D" stroke-width="2"/>
+<text x="84.00" y="340" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#20282D">Task +</text>
+<text x="84.00" y="373" font-family="Arial,sans-serif" font-size="25" font-weight="400" fill="#20282D">first visible assert</text>
+<polyline points="84,391 298,391" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<text x="84.00" y="433" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#2458C6">Full reward tests</text>
+<polyline points="318,351 442,351" fill="none" stroke="#20282D" stroke-width="3"/>
+<polygon points="442,351 428.49329346470984,357.52448301166845 428.49329346470984,344.47551698833155" fill="#20282D" stroke="none" stroke-width="2"/>
+<text x="345.00" y="334" font-family="Arial,sans-serif" font-size="24" font-weight="400" fill="#616A6E">prompt</text>
+<text x="457.52" y="263" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#20282D">Tiny Aya Global</text>
+<text x="547.00" y="298" font-family="Arial,sans-serif" font-size="25" font-weight="400" fill="#616A6E">3.35B</text>
+<polyline points="502,342 580,317" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="502,342 580,382" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="502,342 580,447" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="502,422 580,317" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="502,422 580,382" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="502,422 580,447" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="580,317 658,342" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="580,317 658,422" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="580,382 658,342" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="580,382 658,422" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="580,447 658,342" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="580,447 658,422" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<circle cx="502" cy="342" r="13" fill="#FFFEFA" stroke="#20282D" stroke-width="3"/>
+<circle cx="502" cy="422" r="13" fill="#FFFEFA" stroke="#20282D" stroke-width="3"/>
+<circle cx="580" cy="317" r="13" fill="#FFFEFA" stroke="#20282D" stroke-width="3"/>
+<circle cx="580" cy="382" r="13" fill="#FFFEFA" stroke="#20282D" stroke-width="3"/>
+<circle cx="580" cy="447" r="13" fill="#FFFEFA" stroke="#20282D" stroke-width="3"/>
+<circle cx="658" cy="342" r="13" fill="#FFFEFA" stroke="#20282D" stroke-width="3"/>
+<circle cx="658" cy="422" r="13" fill="#FFFEFA" stroke="#20282D" stroke-width="3"/>
+<polyline points="716,288 658,329" fill="none" stroke="#2458C6" stroke-width="3"/>
+<rect x="716" y="244" width="128" height="44" rx="0" fill="#2458C6" stroke="none" stroke-width="2"/>
+<text x="747.00" y="274" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#FFFEFA">LoRA</text>
+<polyline points="688,351 874,351" fill="none" stroke="#20282D" stroke-width="3"/>
+<polygon points="874,351 860.4932934647098,357.52448301166845 860.4932934647098,344.47551698833155" fill="#20282D" stroke="none" stroke-width="2"/>
+<text x="710.00" y="331" font-family="Arial,sans-serif" font-size="24" font-weight="400" fill="#616A6E">completions</text>
+<polyline points="318,429 360,429 360,490 830,490 830,376 874,376" fill="none" stroke="#2458C6" stroke-width="3"/>
+<polygon points="874,376 860.4932934647098,382.52448301166845 860.4932934647098,369.47551698833155" fill="#2458C6" stroke="none" stroke-width="2"/>
+<text x="653.00" y="484" font-family="Arial,sans-serif" font-size="25" font-weight="400" fill="#2458C6">full tests</text>
+<text x="903.00" y="262" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#20282D">Choose one reward callback</text>
+<circle cx="886" cy="364" r="12" fill="#20282D" stroke="none" stroke-width="2"/>
+<polyline points="899,364 936,316 968,316" fill="none" stroke="#B84B25" stroke-width="3"/>
+<polyline points="899,364 936,428 968,428" fill="none" stroke="#2458C6" stroke-width="3"/>
+<text x="985.00" y="321" font-family="Arial,sans-serif" font-size="31" font-weight="700" fill="#B84B25">AlignTune</text>
+<text x="985.00" y="357" font-family="Arial,sans-serif" font-size="26" font-weight="400" fill="#616A6E">code_execution · 0.1.28</text>
+<text x="985.00" y="432" font-family="Arial,sans-serif" font-size="31" font-weight="700" fill="#2458C6">securegrade</text>
+<text x="985.00" y="468" font-family="Arial,sans-serif" font-size="26" font-weight="400" fill="#616A6E">0.1.0 core / 0.1.1 H</text>
+<text x="1377.00" y="389" font-family="Arial,sans-serif" font-size="25" font-weight="700" fill="#616A6E">or</text>
+<polyline points="1356,316 1436,316 1436,570 755,570" fill="none" stroke="#2458C6" stroke-width="3"/>
+<polygon points="755,570 768.5067065352902,563.4755169883315 768.5067065352902,576.5244830116685" fill="#2458C6" stroke="none" stroke-width="2"/>
+<polyline points="1356,428 1436,428" fill="none" stroke="#2458C6" stroke-width="3"/>
+<text x="950.00" y="545" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#2458C6">numeric rewards</text>
+<text x="1190.00" y="615" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#2458C6">[r0, r1, ...]</text>
+<polyline points="506.18221983093764,576.2116570824605 505.40593023593283,578.6008307890872 504.3841565805208,580.8957719937491 503.12809363069016,583.0713368403607 501.6515030749673,585.103689385196 499.97056274847716,586.9705627484772 498.1036893851961,588.6515030749673 496.07133684036063,590.1280936306902 493.8957719937491,591.3841565805209 491.6008307890872,592.4059302359328 489.2116570824605,593.1822198309376 486.7544271609655,593.7045201742833 484.25606294983066,593.9671088341098 481.74393705016934,593.9671088341098 479.2455728390345,593.7045201742833 476.7883429175395,593.1822198309376 474.3991692109128,592.4059302359328 472.1042280062509,591.3841565805209 469.92866315963937,590.1280936306902 467.8963106148039,588.6515030749673 466.02943725152284,586.9705627484772 464.3484969250327,585.103689385196 462.87190636930984,583.0713368403607" fill="none" stroke="#2458C6" stroke-width="3"/>
+<polygon points="462.87190636930984,583.0713368403607 476.0893669137463,590.163497072354 465.53253164184554,597.8334868585371" fill="#2458C6" stroke="none" stroke-width="2"/>
+<polyline points="459.81778016906236,563.7883429175395 460.59406976406717,561.3991692109128 461.6158434194792,559.1042280062509 462.87190636930984,556.9286631596393 464.3484969250327,554.896310614804 466.02943725152284,553.0294372515228 467.8963106148039,551.3484969250327 469.92866315963937,549.8719063693098 472.1042280062509,548.6158434194791 474.39916921091276,547.5940697640672 476.7883429175395,546.8177801690624 479.2455728390345,546.2954798257167 481.74393705016934,546.0328911658902 484.25606294983066,546.0328911658902 486.7544271609655,546.2954798257167 489.2116570824605,546.8177801690624 491.6008307890872,547.5940697640672 493.8957719937491,548.6158434194791 496.07133684036063,549.8719063693098 498.1036893851961,551.3484969250327 499.97056274847716,553.0294372515228 501.6515030749673,554.8963106148038 503.12809363069016,556.9286631596393" fill="none" stroke="#2458C6" stroke-width="3"/>
+<polygon points="503.12809363069016,556.9286631596393 489.91063308625394,549.8365029276457 500.46746835815486,542.1665131414629" fill="#2458C6" stroke="none" stroke-width="2"/>
+<text x="526.00" y="571" font-family="Arial,sans-serif" font-size="33" font-weight="700" fill="#20282D">GRPO</text>
+<text x="526.00" y="604" font-family="Arial,sans-serif" font-size="25" font-weight="400" fill="#616A6E">AlignTune / TRL</text>
+<polyline points="64,654 1408,654" fill="none" stroke="#20282D" stroke-width="2"/>
+<text x="64.00" y="709" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#20282D">Inside securegrade</text>
+<text x="445.00" y="712" font-family="Arial,sans-serif" font-size="29" font-weight="400" fill="#616A6E">The tests stay with the caller.</text>
+<rect x="64" y="750" width="539" height="260" rx="0" fill="#E8EDF7" stroke="none" stroke-width="2"/>
+<text x="88.00" y="788" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#2458C6">CALLER</text>
+<polygon points="88,817 164.0,817 183,836.0 183,963 88,963" fill="#FFFEFA" stroke="#2458C6" stroke-width="2"/>
+<polyline points="164.0,817 164.0,836.0 183,836.0" fill="none" stroke="#2458C6" stroke-width="2"/>
+<rect x="100.35" y="854.96" width="16.150000000000006" height="16.149999999999977" rx="0" fill="#F6F3EB" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="126.0,863.0350000000001 166.85,863.0350000000001" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<rect x="100.35" y="890.0" width="16.150000000000006" height="16.149999999999977" rx="0" fill="#F6F3EB" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="126.0,898.075 166.85,898.075" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<rect x="100.35" y="925.0400000000001" width="16.150000000000006" height="16.149999999999977" rx="0" fill="#F6F3EB" stroke="#CBCDC7" stroke-width="2"/>
+<polyline points="126.0,933.1150000000001 166.85,933.1150000000001" fill="none" stroke="#CBCDC7" stroke-width="2"/>
+<text x="213.00" y="825" font-family="Arial,sans-serif" font-size="28" font-weight="700" fill="#20282D">Expected values</text>
+<circle cx="235" cy="864" r="19" fill="#FFFEFA" stroke="#2458C6" stroke-width="2"/>
+<polyline points="227,864 243,864" fill="none" stroke="#2458C6" stroke-width="3"/>
+<circle cx="299" cy="864" r="19" fill="#FFFEFA" stroke="#2458C6" stroke-width="2"/>
+<polyline points="291,864 307,864" fill="none" stroke="#2458C6" stroke-width="3"/>
+<circle cx="363" cy="864" r="19" fill="#FFFEFA" stroke="#2458C6" stroke-width="2"/>
+<polyline points="355,864 371,864" fill="none" stroke="#2458C6" stroke-width="3"/>
+<text x="213.00" y="948" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#2458C6">Validate / decode</text>
+<text x="213.00" y="988" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#2458C6">Compare built-in values</text>
+<text x="91.00" y="997" font-family="Arial,sans-serif" font-size="23" font-weight="400" fill="#616A6E">Tests</text>
+<polyline points="603,835 1000,835" fill="none" stroke="#2458C6" stroke-width="3"/>
+<polygon points="1000,835 986.4932934647098,841.5244830116685 986.4932934647098,828.4755169883315" fill="#2458C6" stroke="none" stroke-width="2"/>
+<text x="656.00" y="814" font-family="Arial,sans-serif" font-size="27" font-weight="700" fill="#2458C6">arguments only</text>
+<polyline points="1000,952 603,952" fill="none" stroke="#20282D" stroke-width="3"/>
+<polygon points="603,952 616.5067065352902,945.4755169883315 616.5067065352902,958.5244830116685" fill="#20282D" stroke="none" stroke-width="2"/>
+<text x="635.00" y="931" font-family="Arial,sans-serif" font-size="26" font-weight="700" fill="#20282D">untrusted return data</text>
+<text x="657.00" y="995" font-family="Arial,sans-serif" font-size="24" font-weight="400" fill="#616A6E">type-tagged JSON</text>
+<polyline points="866,748 866,1010" fill="none" stroke="#CBCDC7" stroke-width="2" stroke-dasharray="9 9"/>
+<circle cx="1091" cy="888" r="105" fill="#F6F3EB" stroke="#20282D" stroke-width="2"/>
+<polygon points="1044,822 1118.4,822 1137,840.6 1137,955 1044,955" fill="#FFFEFA" stroke="#20282D" stroke-width="2"/>
+<polyline points="1118.4,822 1118.4,840.6 1137,840.6" fill="none" stroke="#20282D" stroke-width="2"/>
+<polyline points="1073.76,859.24 1061.67,868.55 1073.76,877.8599999999999" fill="none" stroke="#20282D" stroke-width="3"/>
+<polyline points="1106.31,859.24 1118.4,868.55 1106.31,877.8599999999999" fill="none" stroke="#20282D" stroke-width="3"/>
+<polyline points="1061.67,899.14 1114.68,899.14" fill="none" stroke="#CBCDC7" stroke-width="4"/>
+<polyline points="1061.67,915.1 1098.87,915.1" fill="none" stroke="#CBCDC7" stroke-width="4"/>
+<polyline points="1061.67,931.06 1119.33,931.06" fill="none" stroke="#CBCDC7" stroke-width="4"/>
+<text x="1217.00" y="847" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#20282D">Fresh</text>
+<text x="1217.00" y="887" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#20282D">interpreter</text>
+<text x="1217.00" y="941" font-family="Arial,sans-serif" font-size="25" font-weight="400" fill="#616A6E">Candidate</text>
+<text x="1217.00" y="975" font-family="Arial,sans-serif" font-size="25" font-weight="400" fill="#616A6E">code</text>
+<polyline points="64,1042 1408,1042" fill="none" stroke="#20282D" stroke-width="2"/>
+<circle cx="86" cy="1090" r="22" fill="#F6F3EB" stroke="#20282D" stroke-width="3"/>
+<polyline points="102,1106 120,1124" fill="none" stroke="#20282D" stroke-width="5"/>
+<text x="146.00" y="1081" font-family="Arial,sans-serif" font-size="24" font-weight="700" fill="#616A6E">Separate audit</text>
+<text x="146.00" y="1122" font-family="Arial,sans-serif" font-size="32" font-weight="700" fill="#20282D">rewardcheck</text>
+<polyline points="383,1114 467,1114" fill="none" stroke="#616A6E" stroke-width="3" stroke-dasharray="9 9"/>
+<polygon points="467,1114 453.49329346470984,1120.5244830116685 453.49329346470984,1107.4755169883315" fill="#616A6E" stroke="none" stroke-width="2"/>
+<text x="499.00" y="1093" font-family="Arial,sans-serif" font-size="30" font-weight="700" fill="#20282D">AlignTune · SafeTune · securegrade</text>
+<text x="499.00" y="1134" font-family="Arial,sans-serif" font-size="26" font-weight="400" fill="#616A6E">Reference, nonanswer and test-wiring controls</text>
+</svg>

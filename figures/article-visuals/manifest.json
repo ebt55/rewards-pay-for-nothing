@@ -1,0 +1,220 @@
+{
+  "schema": 2,
+  "design": "Astra editorial redesign; explanatory schematics, not new measurements",
+  "runtime": {
+    "python": "3.13.12",
+    "pillow": "12.3.0"
+  },
+  "fonts": [
+    {
+      "file": "arial.ttf",
+      "sha256": "b3658eadae55e682b5f69eb64c439c1ecc8f196c0bb8d4756d145d13bc86476a"
+    },
+    {
+      "file": "arialbd.ttf",
+      "sha256": "e8f4e3baf6cc35fed6fcce3a540e8b39e8f6cda1d22a28f2ec8f526fef7a43f5"
+    }
+  ],
+  "renderer_sha256": "89538a1dbbe8dd9b19a64ac2b535d54bc116d4597ee71254c4c9f41cbda4c0eb",
+  "architecture_dimensions": [
+    1472,
+    1160
+  ],
+  "animation": {
+    "dimensions": [
+      1472,
+      960
+    ],
+    "duration_ms": 15200,
+    "nominal_fps": 12.5,
+    "generated_frames": 190,
+    "encoded_frames": 73,
+    "encoded_frame_durations_ms": [
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      160,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      240,
+      1840,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      320,
+      720,
+      160,
+      2080,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      80,
+      160,
+      240,
+      80,
+      1120,
+      3200
+    ],
+    "loop_extension_present": false,
+    "playback": "once; 3.2-second final hold, then retain summary",
+    "disposal": 1,
+    "palette": "one shared 128-color palette; no dithering",
+    "phases": [
+      {
+        "name": "execution_starts",
+        "start_ms": 0,
+        "end_ms": 1000,
+        "sample_ms": 800,
+        "decoded_frame": 10,
+        "description": "Historical execution enters the nonanswer; appended checks wait."
+      },
+      {
+        "name": "terminates_before_tests",
+        "start_ms": 1000,
+        "end_ms": 2400,
+        "sample_ms": 1700,
+        "decoded_frame": 20,
+        "description": "Candidate terminates. Only its exit status reaches the grader; tests do not run."
+      },
+      {
+        "name": "historical_credit",
+        "start_ms": 2400,
+        "end_ms": 4400,
+        "sample_ms": 3600,
+        "decoded_frame": 29,
+        "description": "Historical code_verifiable gives the nonanswer reward 1.0."
+      },
+      {
+        "name": "caller_keeps_tests",
+        "start_ms": 4400,
+        "end_ms": 6100,
+        "sample_ms": 5800,
+        "decoded_frame": 40,
+        "description": "securegrade sends arguments only; the same candidate terminates without a return."
+      },
+      {
+        "name": "no_result_no_credit",
+        "start_ms": 6100,
+        "end_ms": 8400,
+        "sample_ms": 7400,
+        "decoded_frame": 42,
+        "description": "Caller has no returned result to compare, so reward is 0.0."
+      },
+      {
+        "name": "reference_returns_data",
+        "start_ms": 8400,
+        "end_ms": 10300,
+        "sample_ms": 9600,
+        "decoded_frame": 58,
+        "description": "Supplied reference returns candidate-originated data; caller validates and decodes it."
+      },
+      {
+        "name": "reference_checked",
+        "start_ms": 10300,
+        "end_ms": 12000,
+        "sample_ms": 11300,
+        "decoded_frame": 71,
+        "description": "Caller comparisons succeed for the supplied reference; reward is 1.0."
+      },
+      {
+        "name": "final_comparison",
+        "start_ms": 12000,
+        "end_ms": 15200,
+        "sample_ms": 14000,
+        "decoded_frame": 72,
+        "description": "Persistent summary of all three scoped outcomes."
+      }
+    ]
+  },
+  "outputs": {
+    "architecture-astra.png": {
+      "bytes": 135841,
+      "sha256": "7caa27f3a86b87de4d9a04a704694aa0f2d18ad46113f7db699d84a114dddd29",
+      "dimensions": [
+        1472,
+        1160
+      ]
+    },
+    "architecture-astra.svg": {
+      "bytes": 15687,
+      "sha256": "3593b92aace3bd951d97acd6abd35afa89dc3e205e3300d7ff7cfb0ea1c1e030"
+    },
+    "same-nonanswer-astra.gif": {
+      "bytes": 199813,
+      "sha256": "aa1b48216badf2a0be7850843876e41e7e921cc1828ff5df043e0bd558589f04"
+    },
+    "same-nonanswer-astra-poster.png": {
+      "bytes": 88495,
+      "sha256": "6c836e6b928eba3b162c6d407b36ab503803579509765004205c776537acec04",
+      "dimensions": [
+        1472,
+        960
+      ]
+    },
+    "stages-astra-contact-sheet.png": {
+      "bytes": 512792,
+      "sha256": "868aa48bd9f4cd2534fd6e34c34569c91db63f6eaa735fb4fd776e91cfc8365f",
+      "dimensions": [
+        1472,
+        2128
+      ]
+    }
+  },
+  "source_sha256": {
+    "ARTICLE-DRAFT-v2.md": "dbd1341dbf2ba5fff67855d445bb7ded9497076ff7780a57898915c0ce35709a",
+    "results/gate1-2026-11-01.md": "014768cf2a7f4c4b3948e5c3b27cb7383fb9a5d77c0515281e28cb0b40de07f8",
+    "securegrade/README.md": "c6da17b92c3a93a8f66ad17ab9e4b55afd7b1afa338440f93070beb951f15f4f",
+    "harness/README.md": "e801d1426931651d4e090c7269010f1e72f67d3806375e8cac18ee33f0626b35",
+    "design/RUNS-2026-11-02.md": "b2f8727978765ea4bc8c4db31ac4ab4199636b344091232f5467763f5466881a",
+    "design/HOLE-PAIR-2026-11-04.md": "48dca4d7b6f1871ba0156b999017918c2b999fdc1f8bb36986d7682deccd27d5"
+  }
+}

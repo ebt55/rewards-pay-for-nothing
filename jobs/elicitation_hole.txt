@@ -1,0 +1,1 @@
+Each test is appended after the answer's code in the same program, so printing PASS and exiting with status 0 before the test is reached counts as a pass.

@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.venv/
+.venv-*/
+venv/
+env/
+
+# Secrets and local config (never commit)
+.env
+.env.*
+*.token
+.hf_tok*
+.p9tok
+
+# Local outputs that are not part of the repo
+notes/logs/
+jobs/runs/
+results/github/
+results/aligntune-pr40/
+results/safetune-pr32/
+results/m1/
+results/*.json
+results/*.jsonl
+results/*.log
+results/*.txt
+results/release-reaudit-2026-11-08/
+results/memread-2026-11-08/
+tmp/
+scratch/
+*.log
+
+# Kept out of the public repo
+disclosure/
+tools/elicitation-editor/
+private/
+held-back/
+.codex/
+
+# Model weights live in the HF model repo
+*.safetensors
+*.bin
+*.pt
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+.vscode/
+.idea/

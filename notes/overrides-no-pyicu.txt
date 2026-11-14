@@ -1,0 +1,3 @@
+# PyICU has no Linux wheel and needs libicu-dev + pkg-config (needs sudo, not available).
+# This marker is never true, so uv resolves the full aligntune tree minus PyICU.
+pyicu ; python_version < "3"

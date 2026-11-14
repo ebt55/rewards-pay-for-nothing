@@ -1,0 +1,1 @@
+A test is passed when the answer is run as a Python program, the run exits with status 0, and its output contains PASS. The score is the fraction of the task's tests that pass.
