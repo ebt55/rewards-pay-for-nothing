@@ -229,6 +229,7 @@ Recomputed on 14 Nov 2026 from `results/replay-release-2026-11-14.json` (RR), `r
 | RX11 | Replay wall time 158 s | Full replay run | 1 | RR runtime | CPU, two lanes, nice 19 | RR `runtime.wall_s_full_run` |
 | RX12 | Held-out columns: evaluator is the run's securegrade (0.1.0 core, 0.1.1 H); "hidden asserts" scores `test_list[1:]`; "with hint" appends `elicitation_text.txt` in all eight core runs (U included) and the combined text in H | Held-out MBPP 100 tasks | 100 per eval | SG-core / SG-H | Definitions only | `jobs/grpo_train.py` `run_eval`; `data.json` `eval_hint_text`; `summary.json` |
 | RX13 | Literature figures in the write-up: MATS report about 79% hacking in Qwen3-4B, 200 steps at batch 256 (51,200 rollouts per run); issue numbers verl #8656, LiveCodeBench #165, human-eval #71 | External sources | n/a | Cited sources | MATS figures read from the post on 14 Nov 2026; issue numbers are cited, not re-checked in this pass. Not results of this project | Linked sources |
+| RX14 | securegrade 0.1.3 re-score of training: 0 of 12,700 logged full scores lost, 0 answers scored lower; 2 differences 0.1.2 vs 0.1.3 (`random`, unstable on re-run), 5 logged vs 0.1.3 (4 numpy imports that failed in the training container, 1 `random`) | All 32,000 logged training answers, 10 runs | 32,000 x 2 versions | securegrade 0.1.2 and 0.1.3, training's `secure_all` call | WSL, CPU, nice 19; logged scores are from the RunPod container | `results/securegrade-training-rescore-2026-11-14.{md,json}` |
 
 ## Errata (14 Nov 2026)
 
