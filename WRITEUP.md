@@ -357,7 +357,7 @@ This is an expectation, not a result. The repeat would be judged by the threshol
 - **GitHub repo** (MIT; SafeTune source is not included): https://github.com/ebt55/rewards-pay-for-nothing
 - **HF dataset** (training answers with both graders' scores, evaluations, audit matrices; benchmark material keeps its own licence): https://huggingface.co/datasets/ebt005/p9-reward-hacking-logs
 - **HF models** (ten step-100 LoRA adapters; Tiny Aya's CC-BY-NC-4.0 terms apply): https://huggingface.co/ebt005/p9-tiny-aya-grpo-adapters
-- **HF collections:** "P9 models" and "P9 data", listed at https://huggingface.co/ebt005
+- **HF collections:** [P9 models](https://huggingface.co/collections/ebt005/p9-models-rewards-that-pay-for-nothing-6af7e2cd9994d1dfbb723ca8) and [P9 data](https://huggingface.co/collections/ebt005/p9-data-rewards-that-pay-for-nothing-6af7e2ce95e0fc80de5eaa9c)
 - **Every number, traced to its results file:** [CLAIMS.md](https://github.com/ebt55/rewards-pay-for-nothing/blob/main/CLAIMS.md)
 - **Demo, Space, video, slides:** none.
 
