@@ -297,11 +297,16 @@ def terminal_doc():
     """Build the displayed lines from the captured outputs. Each line: (kind, [(text, style), ...])."""
     naive = NAIVE_TXT.read_text(encoding="utf-8").splitlines()
     sg = SG_TXT.read_text(encoding="utf-8").splitlines()
-    classes = ["empty", "prose", "stub", "print_pass_exit", "bare_exit", "fake_pass_lines", "always_equal"]
+    classes = ["empty", "prose", "stub", "print_pass_exit", "bare_exit", "fake_pass_lines", "always_equal",
+               "os_exit"]
 
     def block(out, verdict, details):
+        # the header wraps onto a second line (the >stub definition); the GIF shows only its first clause
+        head = pick(out, "Answers that solve nothing")
+        if "; >stub" in head:
+            head = head.split("; >stub")[0] + ")"
         lines = [("out", [(pick(out, "rewardcheck selfcheck:"), "ink2")]),
-                 ("out", [(pick(out, "Answers that solve nothing"), "ink")]),
+                 ("out", [(head, "ink")]),
                  ("out", [(pick(out, "  class "), "muted")])]
         for c in classes:
             ln = pick(out, f"  {c} ")
@@ -321,7 +326,7 @@ def terminal_doc():
         return lines
 
     # sanity on the captured text
-    for c in ("print_pass_exit", "bare_exit", "always_equal"):
+    for c in ("print_pass_exit", "bare_exit", "always_equal", "os_exit"):
         if "10/10" not in pick(naive, f"  {c} ") or not pick(naive, f"  {c} ").rstrip().endswith("PAID"):
             fail(f"naive capture: {c} not PAID 10/10")
         if " 0/10" not in pick(sg, f"  {c} "):
@@ -356,7 +361,7 @@ def terminal_doc():
             out.append(("cmd", [(prefix, "prompt"), (s, "ink")]))
         return out
 
-    doc = cmd_lines(cmd1) + block(naive, "FAIL (", 3) + [("out", [("", "ink")])] + cmd_lines(cmd2) + block(sg, "PASS (", 0)
+    doc = cmd_lines(cmd1) + block(naive, "FAIL (", 4) +[("out", [("", "ink")])] + cmd_lines(cmd2) + block(sg, "PASS (", 0)
     return doc
 
 
@@ -466,9 +471,10 @@ def render_gif():
     first_out = len(c1)
     verdict1 = next(i for i, (k, _) in enumerate(doc) if k == "verdict")
     chunks = [first_out + 1, first_out + 3]
-    chunks += list(range(first_out + 4, first_out + 11))  # one class row per tick group
-    chunks += [first_out + 11, verdict1, verdict1 + 4]
-    durations = [320, 320] + [200] * 7 + [360, 500, 400]
+    nc = 8  # class rows
+    chunks += list(range(first_out + 4, first_out + 4 + nc))  # one class row per tick group
+    chunks += [first_out + 4 + nc, verdict1, verdict1 + 5]
+    durations = [320, 320] + [200] * nc + [360, 500, 400]
     for n, ms in zip(chunks, durations):
         add(frame(n), ms)
     add(frame(c2[0], None, False), 1500)
@@ -478,8 +484,8 @@ def render_gif():
     add(frame(c2[-1] + 1), 400)
     s2 = c2[-1] + 1
     verdict2 = len(doc) - 1
-    chunks = [s2 + 1, s2 + 3] + list(range(s2 + 4, s2 + 11)) + [s2 + 11, verdict2 + 1]
-    durations = [320, 320] + [200] * 7 + [360, 3400]
+    chunks = [s2 + 1, s2 + 3] + list(range(s2 + 4, s2 + 4 + nc)) + [s2 + 4 + nc, verdict2 + 1]
+    durations = [320, 320] + [200] * nc + [360, 3400]
     for n, ms in zip(chunks, durations):
         add(frame(n), ms)
 
@@ -591,7 +597,7 @@ number it draws against the replay JSON and the captured output, and stops on an
 `selfcheck-*.txt` is the unedited stdout of the two quick-start commands in `harness/README.md`,
 run on 14 Nov 2026 from the repository root in WSL (Python 3.12.3, `nice -n 19`, `PYTHONPATH="$PWD/harness"`).
 Exit status: 1 for the naive reward (FAIL), 0 for securegrade (PASS). The GIF shows these lines trimmed:
-the `called as` line, blank lines, the not-gated block, `Cells without a score: none` and the JSON report path are left
+the header's second clause and its wrapped line (the `>stub` column definition), the `called as` line, blank lines, the not-gated block, `Cells without a score: none` and the JSON report path are left
 out (the not-gated block is marked `…`). Elapsed times are from this run. The terminal's red and green differ in lightness for deutan
 viewers (dataviz validator: #ef6b62 vs #57d38c, deutan dE 8.6, target 8) and the words PAID, FAIL and PASS carry the meaning without colour.
 

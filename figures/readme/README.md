@@ -14,8 +14,8 @@ number it draws against the replay JSON and the captured output, and stops on an
 
 | File | Pixels | Size | SHA-256 |
 |---|---|---:|---|
-| `demo-rewardcheck.gif` | 746 x 910 | 88 KiB | `1ece2eefa62790c291b75269a329b728581df2779507e66e3adac91cc44027d2` |
-| `demo-rewardcheck-poster.png` | 746 x 910 | 89 KiB | `2a0e6c1f73231f6a224cc188faf38e9300698e84d10e7a14bfb815f39a353f18` |
+| `demo-rewardcheck.gif` | 852 x 976 | 94 KiB | `55973366831e874eeb63ad2eab984d1b5a7d3228180016f6e933737cee2e8b00` |
+| `demo-rewardcheck-poster.png` | 852 x 976 | 99 KiB | `5774ef9bb5bd4bcab8303334e4e94e0079608156eae129c1f24fad5bb08a4da4` |
 | `replay-before-after-light.png` | 1680 x 1040 | 206 KiB | `cfadaad1c7f2dbd0cc7e9faef4f427268855c858890d982cd215ec8ba745bfe1` |
 | `replay-before-after-dark.png` | 1680 x 1040 | 204 KiB | `4ccaccefc392e284ca13d06936338ed0d08c46957238244048f8a48e5d3e4f8c` |
 | `replay-before-after-light.svg` |  | 121 KiB | `6f8dd396ea553066f09ed1719a08e64c9bee5da025585bc7540c3a4f31765433` |
@@ -25,22 +25,22 @@ number it draws against the replay JSON and the captured output, and stops on an
 | `how-the-trick-works-light.svg` |  | 83 KiB | `5aa68c976d4d781983ab485f8b4e431d9678af364c1ebc47b4d2cd17e66233ba` |
 | `how-the-trick-works-dark.svg` |  | 83 KiB | `dd0e0454419a4527b1154e0c8ee761cb246244ecd6bee10de05942bfc54863b4` |
 
-`demo-rewardcheck.gif`: 14.5 s, 55 frames, plays once
+`demo-rewardcheck.gif`: 14.9 s, 57 frames, plays once
 (no loop extension) and holds the final frame. `demo-rewardcheck-poster.png` is that final frame.
 
 ## Inputs
 
 | Input | SHA-256 |
 |---|---|
-| `selfcheck-naive.txt` | `22ce4e383c2354685da36cd76f573167aae00f62aadf89a224822ba8141185a6` |
-| `selfcheck-securegrade.txt` | `03203f9237e1bd6604df992574ccd700430478484e7b25f09f2d3811a1acbce4` |
+| `selfcheck-naive.txt` | `fa177df49316fa02d7776baa33210b83e779a291ea3acf9ff430fe96a5d807e8` |
+| `selfcheck-securegrade.txt` | `4c6cf8d1f24c8214357859cd67e01dc903eeca7606beb61334955cfe9bd12304` |
 | `results/replay-release-2026-11-14.json` | `3ba7f5a15ee3cd786861f7d47c81ab3fb853b04738f016768c4fdeb13310ef53` |
-| `scripts/figures/make_readme_visuals.py` | `5a613683e12bf59156ea5a728d1904b6680e4f5d83802438cbc7b78fd9162b34` |
+| `scripts/figures/make_readme_visuals.py` | `85ff3fa865493099a72114d13af74f57860b8ddcbbc3e52dc7c02ec6c07887e6` |
 
 `selfcheck-*.txt` is the unedited stdout of the two quick-start commands in `harness/README.md`,
 run on 14 Nov 2026 from the repository root in WSL (Python 3.12.3, `nice -n 19`, `PYTHONPATH="$PWD/harness"`).
 Exit status: 1 for the naive reward (FAIL), 0 for securegrade (PASS). The GIF shows these lines trimmed:
-the `called as` line, blank lines, the not-gated block, `Cells without a score: none` and the JSON report path are left
+the header's second clause and its wrapped line (the `>stub` column definition), the `called as` line, blank lines, the not-gated block, `Cells without a score: none` and the JSON report path are left
 out (the not-gated block is marked `…`). Elapsed times are from this run. The terminal's red and green differ in lightness for deutan
 viewers (dataviz validator: #ef6b62 vs #57d38c, deutan dE 8.6, target 8) and the words PAID, FAIL and PASS carry the meaning without colour.
 

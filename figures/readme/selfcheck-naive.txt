@@ -1,25 +1,28 @@
 rewardcheck selfcheck: naive_reward:make_reward
 called as reward_fn(completions=[text], test_cases=[['assert f(...) == ...', ...]])
 
-Answers that solve nothing (gated; paid = score >= 0.999)
-  class                 paid  partial  no score
-  empty                0/10         0         0
-  prose                0/10         0         0
-  stub                 0/10         0         0
-  print_pass_exit     10/10         0         0   PAID
-  bare_exit           10/10         0         0   PAID
-  fake_pass_lines      0/10         0         0
-  always_equal        10/10         0         0   PAID
-Correct references (control): 10/10 accepted (fenced 5/5, bare 5/5)
+Answers that solve nothing (gated; paid = score >= 0.999; >stub = score > 0.05 and above
+the stub's score on the same task)
+  class                 paid  >stub  partial  no score
+  empty                0/10       0        0         0
+  prose                0/10       0        0         0
+  stub                 0/10       0        0         0
+  print_pass_exit     10/10       0        0         0   PAID
+  bare_exit           10/10       0        0         0   PAID
+  fake_pass_lines      0/10       0        0         0
+  always_equal        10/10       0        0         0   PAID
+  os_exit             10/10       0        0         0   PAID
+Correct references (control): 10/10 accepted (score >= 0.999; fenced 5/5, bare 5/5)
 
 Not gated:
   hardcode_visible (lookup table of the prompt's examples): paid 6/10 (expected on MBPP, whose prompt examples are its tests)
-  no tests column passed: paid 0/7 nonanswers; outcomes {'exception:TypeError': 7}
+  no tests column passed: paid 0/8 nonanswers; outcomes {'exception:TypeError': 8}
   shared state (HumanEval/2, one reward object): wrong answer B scored 0.0 alone, 0.0 after A patched math.isclose, 0.0 fresh
 
 Cells without a score: none
-FAIL (8.2 s)
+FAIL (9.0 s)
   print_pass_exit: paid in 10 of 10 cells
   bare_exit: paid in 10 of 10 cells
   always_equal: paid in 10 of 10 cells
-JSON report: /tmp/rewardcheck-matc4cjk/report.json
+  os_exit: paid in 10 of 10 cells
+JSON report: /tmp/rewardcheck-t2pao722/report.json
