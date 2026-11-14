@@ -100,9 +100,17 @@ def _sg_main():
         except Exception as e:  # noqa: BLE001
             status["rlimits"][name] = "failed: " + type(e).__name__
     if spec.get("landlock"):
-        ro = [p for p in set(spec["landlock"]["ro"] + [_sg_sys.prefix, _sg_sys.base_prefix,
-                                                         _sg_sys.exec_prefix, _sg_sys.base_exec_prefix]
-                             + [p for p in _sg_sys.path if p]) if p]
+        # Read access: the interpreter's prefixes, sys.path entries inside them, and sys.path package
+        # directories (site-packages / dist-packages) outside them, e.g. a layered venv's .pth line.
+        # Any other sys.path entry outside the prefixes (a .pth line naming a project folder, as an
+        # old-style editable install writes) is not granted.
+        prefixes = [p for p in {_sg_sys.prefix, _sg_sys.base_prefix, _sg_sys.exec_prefix,
+                                _sg_sys.base_exec_prefix} if p]
+        roots = [_sg_os.path.realpath(p).rstrip("/") + "/" for p in prefixes]
+        keep = [p for p in _sg_sys.path if p and (
+            any((_sg_os.path.realpath(p) + "/").startswith(r) for r in roots)
+            or _sg_os.path.basename(_sg_os.path.realpath(p)) in ("site-packages", "dist-packages"))]
+        ro = [p for p in set(spec["landlock"]["ro"] + prefixes + keep) if p]
         status["landlock"] = _sg_landlock(ro, spec["landlock"]["rw"])
     _sg_write(res_fd, {"phase": "ready", "controls": status})
     # Do not evaluate setup or candidate code until the parent validates isolation.

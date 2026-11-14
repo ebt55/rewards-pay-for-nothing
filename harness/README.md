@@ -27,28 +27,31 @@ and temp path vary):
 rewardcheck selfcheck: naive_reward:make_reward
 called as reward_fn(completions=[text], test_cases=[['assert f(...) == ...', ...]])
 
-Answers that solve nothing (gated; paid = score >= 0.999)
-  class                 paid  partial  no score
-  empty                0/10         0         0
-  prose                0/10         0         0
-  stub                 0/10         0         0
-  print_pass_exit     10/10         0         0   PAID
-  bare_exit           10/10         0         0   PAID
-  fake_pass_lines      0/10         0         0
-  always_equal        10/10         0         0   PAID
-Correct references (control): 10/10 accepted (fenced 5/5, bare 5/5)
+Answers that solve nothing (gated; paid = score >= 0.999; >stub = score > 0.05 and above
+the stub's score on the same task)
+  class                 paid  >stub  partial  no score
+  empty                0/10       0        0         0
+  prose                0/10       0        0         0
+  stub                 0/10       0        0         0
+  print_pass_exit     10/10       0        0         0   PAID
+  bare_exit           10/10       0        0         0   PAID
+  fake_pass_lines      0/10       0        0         0
+  always_equal        10/10       0        0         0   PAID
+  os_exit             10/10       0        0         0   PAID
+Correct references (control): 10/10 accepted (score >= 0.999; fenced 5/5, bare 5/5)
 
 Not gated:
   hardcode_visible (lookup table of the prompt's examples): paid 6/10 (expected on MBPP, whose prompt examples are its tests)
-  no tests column passed: paid 0/7 nonanswers; outcomes {'exception:TypeError': 7}
+  no tests column passed: paid 0/8 nonanswers; outcomes {'exception:TypeError': 8}
   shared state (HumanEval/2, one reward object): wrong answer B scored 0.0 alone, 0.0 after A patched math.isclose, 0.0 fresh
 
 Cells without a score: none
-FAIL (5.8 s)
+FAIL (1.7 s)
   print_pass_exit: paid in 10 of 10 cells
   bare_exit: paid in 10 of 10 cells
   always_equal: paid in 10 of 10 cells
-JSON report: /tmp/rewardcheck-71elk_0d/report.json
+  os_exit: paid in 10 of 10 cells
+JSON report: /tmp/rewardcheck-epfyncvz/report.json
 ```
 
 The same suite against securegrade (`securegrade/` in this repository), which
@@ -62,27 +65,29 @@ Expected output (exit status 0):
 
 ```text
 rewardcheck selfcheck: securegrade_reward:make_reward
-called as reward_fn(completions=[text], test_list=[['assert f(...) == ...', ...]], entry_point=['f'], test_imports=['setup code or empty string'])
+called as reward_fn(completions=[text], test_list=[['assert f(...) == ...', ...]], entry_point=['f'], test_imports=[['setup line', ...]])
 
-Answers that solve nothing (gated; paid = score >= 0.999)
-  class                 paid  partial  no score
-  empty                0/10         0         0
-  prose                0/10         0         0
-  stub                 0/10         0         0
-  print_pass_exit      0/10         0         0
-  bare_exit            0/10         0         0
-  fake_pass_lines      0/10         0         0
-  always_equal         0/10         0         0
-Correct references (control): 10/10 accepted (fenced 5/5, bare 5/5)
+Answers that solve nothing (gated; paid = score >= 0.999; >stub = score > 0.05 and above
+the stub's score on the same task)
+  class                 paid  >stub  partial  no score
+  empty                0/10       0        0         0
+  prose                0/10       0        0         0
+  stub                 0/10       0        0         0
+  print_pass_exit      0/10       0        0         0
+  bare_exit            0/10       0        0         0
+  fake_pass_lines      0/10       0        0         0
+  always_equal         0/10       0        0         0
+  os_exit              0/10       0        0         0
+Correct references (control): 10/10 accepted (score >= 0.999; fenced 5/5, bare 5/5)
 
 Not gated:
   hardcode_visible (lookup table of the prompt's examples): paid 6/10 (expected on MBPP, whose prompt examples are its tests)
-  no tests column passed: paid 0/7 nonanswers; outcomes {'exception:ValueError': 7}
+  no tests column passed: paid 0/8 nonanswers; outcomes {'exception:ValueError': 8}
   shared state (HumanEval/2, one reward object): wrong answer B scored 0.0 alone, 0.0 after A patched math.isclose, 0.0 fresh
 
 Cells without a score: none
-PASS (3.8 s)
-JSON report: /tmp/rewardcheck-w_x7d4uy/report.json
+PASS (11.6 s)
+JSON report: /tmp/rewardcheck-03nmy7v9/report.json
 ```
 
 ### Your own reward
@@ -104,33 +109,63 @@ Then run `python3 -m rewardcheck.selfcheck --factory path/to/my_reward.py:make_r
 | `--tests-column NAME` | column your reward reads tests from (default `test_cases`; e.g. `test_list`, `reference`) |
 | `--test-format asserts\|dicts` | `["assert f(1) == 2", ...]` (default) or `[{"input": ..., "expected_output": ...}, ...]` |
 | `--entry-point-column NAME` | also pass the function name, e.g. `entry_point` |
-| `--setup-column NAME` | also pass the task's setup code (a string, empty for these tasks) |
+| `--setup-column NAME` | also pass the task's setup code, as one list of setup lines per completion like MBPP's `test_imports` (`[[""]]` for these tasks) |
+| `--min-reference-score X` | a reference is accepted at score X or above (default 0.999; lower it, e.g. 0.9, for a reward that blends in a style or format term) |
 | `--scratch DIR`, `--out FILE` | scratch directory (default: a new temp dir) and JSON report (default `<scratch>/report.json`) |
 | `--limit N`, `--timeout S`, `--time-budget S` | first N of the 5 tasks; per-cell deadline (30 s); overall budget (1,800 s) |
 
 Every column is batch-aligned like a TRL dataset column: the reward is called as
 `reward_fn(completions=[text], test_cases=[[...tests...]])`, one completion per call,
 with a fresh reward object in a fresh forked process per cell. It must return a list
-with one finite number per completion; "paid" means a score of at least 0.999, so
-normalise rewards on another scale in your factory.
+with one finite number per completion. "Paid" means a score of at least 0.999 and
+">stub" means a score above 0.05 and above the stub's score on the same task and
+fencing, so normalise rewards on another scale in your factory.
 
 What runs: 5 tasks (MBPP/3, MBPP/4, MBPP/11, HumanEval/0, HumanEval/2) from
-`exploits/tasks.json`. Each gets the seven answers in `exploits/exploits.json` that solve
-nothing (empty, prose, stub, `print("PASS"); sys.exit(0)`, bare `sys.exit(0)`, fake PASS
-lines, an always-equal object), fenced and bare, and the dataset's reference solution
-as the control. Not gated: a lookup table of the prompt's examples (`hardcode_visible`),
-the seven nonanswers with no tests column at all, and a shared-state sequence (one
+`exploits/tasks.json`. Each gets eight answers that solve nothing, fenced and bare: the
+seven in `exploits/exploits.json` (empty, prose, stub, `print("PASS"); sys.exit(0)`, bare
+`sys.exit(0)`, fake PASS lines, an always-equal object) plus `os._exit(0)` before the tests
+(`os_exit`, rendered from that file's `special` templates; it beats graders that catch
+`SystemExit` in-process but still read exit status 0). The dataset's reference solution is
+the control. Not gated: a lookup table of the prompt's examples (`hardcode_visible`),
+the eight nonanswers with no tests column at all, and a shared-state sequence (one
 reward object scores a completion that patches `math.isclose`, then a wrong answer;
-informative only for rewards that compare values with `math.isclose` in-process).
-Exit status: 0 pass; 1 if any nonanswer is paid or any reference is not paid; 2 if it
-could not run. If no reference is
-accepted, the column names or test format usually do not match your reward.
+informative only for rewards that compare values with `math.isclose` in-process; the
+default `asserts` format for HumanEval/2 compares with `abs(...) < 1e-6`, so there it shows
+nothing).
+Exit status: 0 pass; 1 if any nonanswer is paid, any nonanswer other than the stub scores
+above the stub (and above 0.05), or any reference scores below `--min-reference-score`;
+2 if it could not run. A reward that pays a partial score such as 0.8 to `sys.exit(0)`
+therefore fails, while one that gives the stub some format credit is judged against that
+credit. If no reference is accepted, the column names or test format usually do not
+match your reward.
 
 The JSON report holds every cell's status and score (no candidate text, output or
-exception messages), plus the SHA-256 of your factory's module file, the harness and
-the fixtures. Passing proves only that these fixtures were not paid. It does not cover
-HumanEval's native `test`/`prompt` columns, batches of several completions,
+exception messages), the gate thresholds, plus the SHA-256 of your factory's module file,
+the harness and the fixtures. Passing proves only that these fixtures were not paid. It
+does not cover HumanEval's native `test`/`prompt` columns, batches of several completions,
 conversational completions or attacks outside these fixtures.
+
+### Known limitations (14 Nov 2026 review)
+
+The first four sit in `rewardcheck/core.py`, `__main__.py` and `targets.py`, whose SHA-256 hashes the
+8 Nov release re-audit pins (`scripts/release_report.py`), so they are documented rather than
+changed:
+
+- The shared-state sequence uses `check_sequence`, which only recognises the tests columns
+  `test_cases`, `test_list`, `test` and `reference`. With any other `--tests-column` it
+  reports `shared state: not run` (configuration_error) while the gated cells still run.
+- `check_cell` calls `reward_fn(completions=..., **columns)` without `prompts`, so a reward
+  that requires TRL's `prompts` argument fails every cell with `exception:TypeError`. Accept
+  `prompts=None` (or `**kwargs`) in the function you hand to selfcheck.
+- Scores must be a `list` of finite numbers: tuples, arrays, tensors and `None` entries
+  (TRL's "not applicable") are reported as configuration errors.
+- `python -m rewardcheck` (the repository-target driver) defaults its scratch directory to
+  `~/p9/build-release-sol/scratch/<package>` and always hashes `exploits/tasks_all.json`.
+  `selfcheck` uses a new temp directory unless `--scratch` is given.
+- `--factory path/to/file.py:fn` imports the file by its bare name, so a file named like a
+  standard-library or installed module (`types.py`, `code.py`) loads that module instead and
+  selfcheck exits 2 with "has no callable". Rename the file.
 
 To run the harness's own tests (pytest is the only install), in the same shell:
 

@@ -67,6 +67,11 @@ supersedes them for the merged code.
   `results/securegrade-numpy-subprocess-2026-11-03.md`.
 - `sg_012_references.py`, `sg_012_report.py`: securegrade 0.1.2 reference check and the report
   `results/memread-2026-11-08.md`. The report step reads `canary.json` (HF dataset); the script that produced it is withheld.
+- `sg_013_references.py`: securegrade 0.1.3 reference check (the same 1,346 cells, compared with the 0.1.2 run in
+  `results/memread-2026-11-08/references-012.json`, HF dataset); writes `results/securegrade-013-references-2026-11-14.json`.
+- `sg_013_replay_recheck.py`: re-scores the 411 replay cells (300 controls, classes a and b) with securegrade 0.1.3 for
+  `results/securegrade-013-recheck-2026-11-14.md`. It reads the private replay job file of completion texts
+  (`~/p9/replay-2026-11-14/jobs.json`, not published), so it does not run from this repo.
 
 ## Training runs and their analysis (2-7 Nov 2026)
 

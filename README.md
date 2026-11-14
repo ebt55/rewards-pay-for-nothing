@@ -1,12 +1,12 @@
 # Rewards that pay for nothing
 
-**Code-execution rewards in two RL post-training libraries paid full marks to answers that solve nothing. Both libraries merged fixes one day after a private report, and the released graders now pay 0 of 111 real exploit-shaped answers that the old grader paid in full.**
+**Code-execution rewards in two RL post-training libraries paid full marks to answers that solve nothing. Both libraries merged fixes one day after a private report, and the released graders now pay 0 of 111 exploit-shaped answers from our training logs that the old grader scored in full. Those answers came from runs whose prompt described the grading rule or stated the exit hole; the unhinted runs produced none.**
 
-`MIT` · `Python 3.12` · `Linux / WSL2` · `tools: standard library only` · [full write-up](WRITEUP.md) · [every number, traced](CLAIMS.md)
+`MIT` · `Python 3.12` · `Linux / WSL2` · `tools: standard library only` · [full write-up](WRITEUP.md) · [experimental numbers, traced](CLAIMS.md)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="figures/readme/replay-before-after-dark.png">
-  <img alt="Old grader paid 47 of 47 and 64 of 64 exit answers; released graders paid 0 of each and 297 of 300 correct controls" src="figures/readme/replay-before-after-light.png" width="820">
+  <img alt="Early-exit answers from hinted training runs: the old grader paid 47 of 47 wrong-code and 64 of 64 correct-code answers; released graders paid 0 of each and 297 of 300 correct controls" src="figures/readme/replay-before-after-light.png" width="820">
 </picture>
 
 Two tools come out of the project:
@@ -41,9 +41,9 @@ Historical AlignTune 0.1.28 `code_verifiable`, fenced code, assert tests. This i
 - **Six shipped reward implementations paid answers that solve nothing.** Four in AlignTune 0.1.28 and two in SafeTune 0.1.10 each paid 1.0 to at least one non-answer on all five demonstration tasks. [Audit report](results/gate1-2026-11-01.md)
 - **Fixed upstream in a day, with credit.** Reported privately on 2 November 2026; AlignTune PR #40 and SafeTune PR #32 merged on 3 November. AlignTune's released security test says it is adapted from the report. [Re-audit of the released sources](results/release-reaudit-2026-11-08.md)
 - **The fixes stop the hand-made exploits.** With tests supplied, positive scores fall from 23 of 77 display cells to 0 of 77. [Re-audit](results/release-reaudit-2026-11-08.md)
-- **The released graders pay 0 of 111 real exploit-shaped answers.** These are answers a 3.35B model wrote during our own GRPO runs: 47 wrong and 64 correct, each exiting before the tests. The old grader gives all 111 a full score. Each of five released reward paths pays none. [Replay report](results/replay-release-2026-11-14.md)
-- **297 of 300 ordinary correct answers are still accepted** by each of the four released pass/fail paths. The 3 rejected print PASS and end before the tests run. [Replay report](results/replay-release-2026-11-14.md)
-- **The training study is uninformative.** Ten 100-step GRPO runs compared the shipped reward with a hardened one. Both pre-registered under-training checks failed, so it does not show that training amplifies the exploit, and it does not rule that out. [Training report](results/grpo-8runs-2026-11-03.md), [pre-registration](design/RUNS-2026-11-02.md)
+- **The released graders pay 0 of 111 exploit-shaped answers from training.** A 3.35B model wrote them during our GRPO runs, but only when prompted: 104 come from two runs whose prompt stated the exit hole, 7 from runs whose prompt described the grading rule, and none from the unhinted runs. 47 are wrong code and 64 correct code, each exiting before the tests. The old grader gives all 111 a full score; it was the training reward for 63 of them, and only logged for the other 48. Each of five released reward paths pays none. [Replay report](results/replay-release-2026-11-14.md)
+- **297 of 300 ordinary correct answers are still accepted** by each of the four released pass/fail paths (120 of 120 from unhinted runs). The 3 rejected print PASS and end before the tests run; 2 are correct functions whose exit sits under a `__main__` guard, a shape that both training-time graders passed. [Replay report](results/replay-release-2026-11-14.md)
+- **The training study is uninformative.** Eight pre-registered 100-step GRPO runs compared the shipped reward with a hardened one; two exploratory runs followed. Both pre-registered under-training checks failed, so it does not show that training amplifies the exploit, and it does not rule that out. [Training report](results/grpo-8runs-2026-11-03.md), [pre-registration](design/RUNS-2026-11-02.md)
 
 <details>
 <summary>Before and after, per reward and exploit class (heatmap)</summary>
@@ -75,18 +75,20 @@ nice -n 19 python3 -m rewardcheck.selfcheck --factory harness/examples/naive_rew
 The naive reward pays 1.0 on exit code 0. Expected output, in brief (exit status 1; the time varies):
 
 ```text
-Answers that solve nothing (gated; paid = score >= 0.999)
-  class                 paid  partial  no score
-  empty                0/10         0         0
-  prose                0/10         0         0
-  stub                 0/10         0         0
-  print_pass_exit     10/10         0         0   PAID
-  bare_exit           10/10         0         0   PAID
-  fake_pass_lines      0/10         0         0
-  always_equal        10/10         0         0   PAID
-Correct references (control): 10/10 accepted (fenced 5/5, bare 5/5)
+Answers that solve nothing (gated; paid = score >= 0.999; >stub = score > 0.05 and above
+the stub's score on the same task)
+  class                 paid  >stub  partial  no score
+  empty                0/10       0        0         0
+  prose                0/10       0        0         0
+  stub                 0/10       0        0         0
+  print_pass_exit     10/10       0        0         0   PAID
+  bare_exit           10/10       0        0         0   PAID
+  fake_pass_lines      0/10       0        0         0
+  always_equal        10/10       0        0         0   PAID
+  os_exit             10/10       0        0         0   PAID
+Correct references (control): 10/10 accepted (score >= 0.999; fenced 5/5, bare 5/5)
 ...
-FAIL (5.8 s)
+FAIL (1.7 s)
 ```
 
 **2. Run the example that should pass.** The same suite against `securegrade`:
@@ -113,11 +115,12 @@ Then run `python3 -m rewardcheck.selfcheck --factory path/to/my_reward.py:make_r
 | `--tests-column NAME` | column your reward reads tests from (default `test_cases`; e.g. `test_list`, `reference`) |
 | `--test-format asserts\|dicts` | `["assert f(1) == 2", ...]` (default) or `[{"input": ..., "expected_output": ...}, ...]` |
 | `--entry-point-column NAME` | also pass the function name, e.g. `entry_point` |
-| `--setup-column NAME` | also pass the task's setup code (a string, empty for these tasks) |
+| `--setup-column NAME` | also pass the task's setup code, as one list of setup lines per completion like MBPP's `test_imports` (`[[""]]` for these tasks) |
+| `--min-reference-score X` | a reference is accepted at score X or above (default 0.999; lower it for a reward that blends in a style or format term) |
 | `--scratch DIR`, `--out FILE` | scratch directory (default: a new temp dir) and JSON report (default `<scratch>/report.json`) |
 | `--limit N`, `--timeout S`, `--time-budget S` | first N of the 5 tasks; per-cell deadline (30 s); overall budget (1,800 s) |
 
-Exit status: 0 pass; 1 if any non-answer is paid or any reference is not paid; 2 if it could not run. If no reference is accepted, the column names or test format usually do not match your reward.
+Exit status: 0 pass; 1 if any non-answer is paid, any non-answer other than the stub scores above the stub (and above 0.05), or any reference scores below `--min-reference-score`; 2 if it could not run. If no reference is accepted, the column names or test format usually do not match your reward.
 
 A pass proves only that these fixtures were not paid. Full details: [`harness/README.md`](harness/README.md). Clean-copy check of this quick start: [transcript](harness/QUICKSTART-CHECK-2026-11-14.md).
 
@@ -133,7 +136,7 @@ from securegrade.trl_reward import secure_code_reward      # drop-in TRL reward 
 
 Each answer runs in a fresh Python interpreter. Tests and expected values stay in the caller, which compares the values the answer returns. `securegrade.self_check()` reports which isolation layers are active and raises if a required one is missing.
 
-**Limits.** Linux only, and Landlock is required by default. Version 0.1.2 is untested under root, inside Docker and on kernels with Yama enabled. It is not a general sandbox. Read "Required controls" and "Limits" in [`securegrade/README.md`](securegrade/README.md) before relying on it.
+**Limits.** Linux only, and Landlock is required by default. Version 0.1.3 is untested under root, inside Docker and on kernels with Yama enabled. It is not a general sandbox. Read "Required controls" and "Limits" in [`securegrade/README.md`](securegrade/README.md) before relying on it.
 
 ## A checklist for anyone writing code rewards
 
@@ -151,12 +154,12 @@ Each answer runs in a fresh Python interpreter. Tests and expected values stay i
 | Path | What |
 |---|---|
 | [`WRITEUP.md`](WRITEUP.md) | the full write-up: method, results, limits, cost |
-| [`CLAIMS.md`](CLAIMS.md) | every claim with its scope, sample size and source |
+| [`CLAIMS.md`](CLAIMS.md) | experimental claims with their scope, sample size and source |
 | [`harness/`](harness/) | `rewardcheck`; own README, quick start and MIT licence |
 | [`securegrade/`](securegrade/) | the hardened grader; own README, CHANGELOG and MIT licence |
 | [`exploits/`](exploits/) | the exploit suite (`exploits.json`) and benchmark tasks (`tasks.json`: 5 tasks; `tasks_all.json`: all MBPP-sanitized and HumanEval tasks) |
 | [`jobs/`](jobs/) | the GRPO trainer, container entry scripts, hack detectors, fallback grader, elicitation texts, `requirements-lock.txt`. See [`jobs/README.md`](jobs/README.md). |
-| [`scripts/`](scripts/) | audit drivers, PR checks, release re-audit (`release_*.py`), replay (`replay_release.py`), securegrade 0.1.2 checks (`sg_012_*.py`), report builders, figure scripts |
+| [`scripts/`](scripts/) | audit drivers, PR checks, release re-audit (`release_*.py`), replay (`replay_release.py`), securegrade 0.1.2 and 0.1.3 checks (`sg_012_*.py`, `sg_013_*.py`), report builders, figure scripts |
 | [`tests/`](tests/) | Gate 1 regression tests (they assert the measured behaviour of the audited wheels) |
 | [`baseline/`](baseline/) | step-0 baseline scripts (code only) |
 | [`design/`](design/) | the pre-registration and design notes, kept as written; dated appendices only |
@@ -177,7 +180,7 @@ Artifacts kept outside this repo:
 
 Everything was run on Linux (WSL2 Ubuntu 24.04 and HF Jobs / RunPod containers), Python 3.12. The audit is CPU only.
 
-**Tests.** pytest is the only install. In the same shell as the quick start, from the repository root, make a venv and run the harness tests (25 tests):
+**Tests.** pytest is the only install. In the same shell as the quick start, from the repository root, make a venv and run the harness tests (28 tests):
 
 ```sh
 python3 -m venv .venv    # needs python3-venv on Debian/Ubuntu; else: rm -rf .venv && uv venv --seed .venv
@@ -192,7 +195,7 @@ Then, inside that venv, the securegrade and harness suites together:
 PYTHONPATH="$PWD:$PWD/harness" python -m pytest -q securegrade/tests harness/tests
 ```
 
-One securegrade test is held back from this repo, so the securegrade suite here has 123 tests (121 pass, 2 skip), one fewer than the 124 cited in the securegrade 0.1.2 report.
+One securegrade test is held back from this repo, so the securegrade 0.1.3 suite here has 150 tests (148 pass and 2 skip in a venv without numpy), one fewer than the full 0.1.3 suite (151 tests with the held-back one). With the harness: 176 passed, 2 skipped.
 
 **Audit, re-audit and replay.** These need the audited packages in their own virtualenvs (see [`notes/INSTALL.md`](notes/INSTALL.md), `scripts/install_*.sh`, `scripts/release_prepare.py`, and [`scripts/README.md`](scripts/README.md)). The helper scripts expect the virtualenvs under `~/p9/` and `uv` at `~/.local/bin/uv`. Several scripts and tests read result JSONs and run files that are published in the dataset repo, not here (`results/gate1-2026-11-01.json`, `results/release-reaudit-2026-11-08/`, `jobs/runs/<run>/`, which is `runs/<run>/` there); copy them into place first. The replay is `scripts/replay_release.py` (stages `prepare`, `grade`, `report`).
 
@@ -204,7 +207,7 @@ This is a research artifact. Read a report's limits before reusing its numbers.
 
 - **Counterexamples, not prevalence.** The audit uses five demonstration tasks and a fixed set of fixtures. It shows the failures exist, not how common they are.
 - **Source archives on WSL2.** The release checks used the exact source archives (AlignTune tag `ff59f10`, SafeTune merge `36b2142`), not PyPI wheels or a clean machine.
-- **The replay is narrow.** MBPP only, one 3.35B model, five reward paths. The control was drawn from answers both old graders passed, so it gives no false-negative rate for correct code in general.
+- **The replay is narrow.** MBPP only, one 3.35B model, five reward paths, and one mechanism: every early-exit answer came from a hinted prompt. The control was drawn from answers both old graders passed, so it gives no false-negative rate for correct code in general.
 - **Training is uninformative** by the pre-registered rule. The learning rate also decayed linearly from 2e-5 to 2e-7 when the plan said constant; see the dated appendix in [`design/RUNS-2026-11-02.md`](design/RUNS-2026-11-02.md). Two later runs that state the hole in the prompt are exploratory ([report](results/hole-pair-2026-11-07.md)). Training used securegrade 0.1.0 and 0.1.1, not 0.1.2.
 - **Rows with no tests can still be paid.** If a row reaches the reward without tests, AlignTune's `code_execution` and `code_verifiable` and SafeTune's `code_execution` can still pay a stub. AlignTune's own regression test documents this for `code_execution`. `rewardcheck` reports it as a configuration error. The fix is the caller's: refuse to score a row with no tests.
 - **One further result is withheld pending private disclosure.**

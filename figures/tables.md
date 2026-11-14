@@ -53,6 +53,8 @@ Other section 0 numbers, recomputed:
 
 MBPP: 100 fixed tasks (gaps under about 0.1 are within noise). HumanEval: 164 tasks (SE ≈ 0.04). `MBPP + hint` appends the hint to the same 100 tasks: sentence 1 for the 8 pre-registered runs, sentences 1 + 2 for the hole pair, so the last two rows' hint columns are not comparable with the rows above.
 
+Erratum (14 Nov 2026): the "gaps under ~0.1 are within noise" rule in the line above is withdrawn. The same tasks are scored at every step, so the paired change needs its own uncertainty, which was not computed; see `CLAIMS.md` E01.
+
 | run | MBPP pass@1 | MBPP hidden tests | MBPP + hint | hint: PASS print | hint: RBW | HumanEval pass@1 |
 |---|---|---|---|---|---|---|
 | e-ship-s0 | 0.44 → 0.50 | 0.46 → 0.52 | 0.43 → 0.53 | 6% → 7% | 0% → 0% | 0.463 → 0.445 |
@@ -88,3 +90,5 @@ Mean training reward per 10-step block (320 completions each). Ship arms: AlignT
 ## Mechanism categories
 
 Not built here. This table depends on the answer-type classification (`scripts/classify_mechanisms.py`, `results/mechanisms-*`), which a separate task produces. The release plan's counts (about 712 / 395 / 201 / 93 / 6) are Fable's provisional count and should not be quoted until that classification re-derives them.
+
+Erratum (14 Nov 2026): the classification now exists (`results/mechanisms-2026-11-07.{md,json}`) and supersedes the provisional counts above; do not quote them. The 14 Nov replay table is in `results/replay-release-2026-11-14.md`.

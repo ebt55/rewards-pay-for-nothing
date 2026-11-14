@@ -19,6 +19,7 @@ earlier ones where they say so: the 3 Nov PR-check reports are historical PR hea
 | `claim-diagnostics-2026-11-08.md` | offline arithmetic behind dated corrections |
 | `memread-2026-11-08.md` | securegrade 0.1.2 hardening evidence |
 | `replay-release-2026-11-14.md` | training completions replayed through the released graders |
+| `securegrade-013-recheck-2026-11-14.md` | securegrade 0.1.3 (14 Nov review fixes): the replay controls and exit answers re-scored; no cell changed |
 
 The script for each report is named in it and indexed in `scripts/README.md`.
 

@@ -16,10 +16,10 @@ number it draws against the replay JSON and the captured output, and stops on an
 |---|---|---:|---|
 | `demo-rewardcheck.gif` | 746 x 910 | 88 KiB | `1ece2eefa62790c291b75269a329b728581df2779507e66e3adac91cc44027d2` |
 | `demo-rewardcheck-poster.png` | 746 x 910 | 89 KiB | `2a0e6c1f73231f6a224cc188faf38e9300698e84d10e7a14bfb815f39a353f18` |
-| `replay-before-after-light.png` | 1680 x 1040 | 205 KiB | `ea747d9ae1fbc9277f70f43aaa9cb246e30a3b194d2f59cfe24543eec66ecc79` |
-| `replay-before-after-dark.png` | 1680 x 1040 | 203 KiB | `be04f3e13e88d47f77a0971cc8ae442d02cf758057ffce0f220f4e9fda9f2ba3` |
-| `replay-before-after-light.svg` |  | 118 KiB | `89c65d1224a30bf163b1afa7561cf845ed860dcd9c28e34178be6e61388fd97b` |
-| `replay-before-after-dark.svg` |  | 118 KiB | `a10f7aa0ea5c0285870cdd1b0c0bf8292a4d42500c624e660721cfab70344a09` |
+| `replay-before-after-light.png` | 1680 x 1040 | 206 KiB | `cfadaad1c7f2dbd0cc7e9faef4f427268855c858890d982cd215ec8ba745bfe1` |
+| `replay-before-after-dark.png` | 1680 x 1040 | 204 KiB | `4ccaccefc392e284ca13d06936338ed0d08c46957238244048f8a48e5d3e4f8c` |
+| `replay-before-after-light.svg` |  | 121 KiB | `6f8dd396ea553066f09ed1719a08e64c9bee5da025585bc7540c3a4f31765433` |
+| `replay-before-after-dark.svg` |  | 121 KiB | `02ff6ef11f3c626b2cfa910666ef3fcefac11b04a7d307c2b6666ab3afbf1b0c` |
 | `how-the-trick-works-light.png` | 1600 x 850 | 137 KiB | `3943e0fedd1cb71d681b1f91e4054009758428f6e16d17feb061edab25a8c912` |
 | `how-the-trick-works-dark.png` | 1600 x 850 | 135 KiB | `088bf073657e66a8bf28051a55249a096e7585a9e38612ea28dc1f136a8f2649` |
 | `how-the-trick-works-light.svg` |  | 83 KiB | `5aa68c976d4d781983ab485f8b4e431d9678af364c1ebc47b4d2cd17e66233ba` |
@@ -35,7 +35,7 @@ number it draws against the replay JSON and the captured output, and stops on an
 | `selfcheck-naive.txt` | `22ce4e383c2354685da36cd76f573167aae00f62aadf89a224822ba8141185a6` |
 | `selfcheck-securegrade.txt` | `03203f9237e1bd6604df992574ccd700430478484e7b25f09f2d3811a1acbce4` |
 | `results/replay-release-2026-11-14.json` | `3ba7f5a15ee3cd786861f7d47c81ab3fb853b04738f016768c4fdeb13310ef53` |
-| `scripts/figures/make_readme_visuals.py` | `26b29563bd0a710905069ec45449593ae9e3ac404aa8545c75227f46c30ccb55` |
+| `scripts/figures/make_readme_visuals.py` | `5a613683e12bf59156ea5a728d1904b6680e4f5d83802438cbc7b78fd9162b34` |
 
 `selfcheck-*.txt` is the unedited stdout of the two quick-start commands in `harness/README.md`,
 run on 14 Nov 2026 from the repository root in WSL (Python 3.12.3, `nice -n 19`, `PYTHONPATH="$PWD/harness"`).

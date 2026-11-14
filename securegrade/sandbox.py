@@ -1,6 +1,6 @@
 """Launch and talk to the candidate child process.
 
-The child is a fresh ``sys.executable -I -c <bootstrap>``:
+The child is a fresh ``sys.executable -I -B -c <bootstrap>``:
 - new session (own process group), killed as a group on timeout or close;
 - temp working directory, minimal environment (no tokens, HOME = the temp dir);
 - stdin carries only the request, then is replaced with /dev/null before candidate code runs;
@@ -59,6 +59,9 @@ def _parent_prctl(option, value=0):
 def _protect_parent():
     """Set nondumpability once per process, then detect drift without restoring it."""
     global _PARENT_PID, _PARENT_ERROR
+    if sys.platform != "linux":
+        raise IsolationConfigurationError(
+            f"securegrade runs candidates only on Linux (use WSL2 on Windows); this is {sys.platform}")
     with _PARENT_LOCK:
         pid = os.getpid()
         if _PARENT_PID != pid:
@@ -221,7 +224,7 @@ class Sandbox:
             raise IsolationConfigurationError("bootstrap pipe setup failed") from exc
         try:
             self.proc = subprocess.Popen(
-                prefix + [self.python, "-I", "-c", BOOTSTRAP, str(self.req_r), str(self.res_w)],
+                prefix + [self.python, "-I", "-B", "-c", BOOTSTRAP, str(self.req_r), str(self.res_w)],
                 stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 cwd=self.tmp, env=env, start_new_session=True, pass_fds=(self.req_r, self.res_w), close_fds=True,
                 **drop_kw)

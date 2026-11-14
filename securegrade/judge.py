@@ -1,12 +1,15 @@
 """Trusted side: run the test program with the candidate's names replaced by proxies.
 
 The test program (MBPP assert list, or a HumanEval ``check(candidate)`` program) is trusted dataset
-code and runs here, in the grader's process. It never sees candidate code. Every free name the tests
-use that the dataset does not define (the entry point, any helper the tests call) is bound to a
-proxy: calling it sends the *arguments* to the child, the child runs the candidate's function and
+code and runs here, in the grader's process. It never sees candidate code. The entry point, and any
+other free name the tests use that the dataset does not define, is bound to a proxy (with a supplied
+prompt and a test program, only the entry point is: helpers like ``poly`` must come from the prompt):
+calling it sends the *arguments* to the child, the child runs the candidate's function and
 sends back a type-tagged plain value, and the comparison (``==``, ``set(...)``, ``math.isclose``,
 ``assert f(x)``, ``assert not f(x)``, ...) happens here on fresh built-in objects. Expected values
-never enter the child. Each ``assert`` statement is rewritten so one failure does not stop the rest.
+never enter the child. Each ``assert`` statement is rewritten so one failure does not stop the rest;
+an exception that stops the test program outside an assert (or an ``assert False`` branch) gives
+no credit, and a dead candidate process never gives ``all_passed``.
 """
 import ast
 import builtins
@@ -45,8 +48,14 @@ class _AssertRewriter(ast.NodeTransformer):
 
     def visit_Assert(self, node):
         self.generic_visit(node)
-        if isinstance(node.test, ast.Constant):   # `assert True, "..."` lines in HumanEval tests
-            return ast.copy_location(ast.Pass(), node)
+        if isinstance(node.test, ast.Constant):
+            if node.test.value:   # `assert True, "..."` lines in HumanEval tests: decorative, not counted
+                return ast.copy_location(ast.Pass(), node)
+            # `assert False` / `assert 0`: a failure branch of the test program. Reaching it stops the
+            # test program, as plain Python would (also under -O); score() then gives no credit.
+            exc = ast.Call(func=ast.Name("AssertionError", ast.Load()), args=[node.msg] if node.msg else [],
+                           keywords=[])
+            return ast.copy_location(ast.Raise(exc=exc, cause=None), node)
         idx = self.n
         self.n += 1
         call = ast.Call(func=ast.Name("__sg_assert", ast.Load()),
@@ -74,12 +83,24 @@ def _bound_and_loaded(tree):
     return bound, loaded
 
 
+def _calls_check_at_top_level(tree):
+    return any(isinstance(s, ast.Expr) and isinstance(s.value, ast.Call) and isinstance(s.value.func, ast.Name)
+               and s.value.func.id == "check" for s in tree.body)
+
+
 def build_program(tests, entry_point=None):
-    """-> (module AST with rewritten asserts, number of counted asserts, entry names to proxy)."""
+    """-> (module AST with rewritten asserts, number of counted asserts).
+
+    Raises ValueError for a HumanEval-style program (defines ``check``, never calls it) given without
+    an entry_point: it would run no assertion and silently score every answer 0."""
     if isinstance(tests, str):
         src = tests
-        if entry_point and "def check(" in tests:
-            src = tests + f"\n\ncheck({entry_point})\n"
+        if "def check(" in tests:
+            if entry_point:
+                src = tests + f"\n\ncheck({entry_point})\n"
+            elif not _calls_check_at_top_level(ast.parse(tests)):
+                raise ValueError("a test program that defines check(candidate) needs entry_point "
+                                 "(HumanEval's entry_point column); without it no assertion would run")
     else:
         src = "\n".join(str(t) for t in tests)
     tree = ast.parse(src)
@@ -125,6 +146,18 @@ class _Missing:
         return f"<missing {self.name}>"
 
 
+def _prompt_code(prompt, entry_point):
+    """Trusted prompt -> the Python code it holds: the prompt itself if it parses, else the code
+    extracted from it (a chat prompt wraps HumanEval's starter code in prose or a fence)."""
+    try:
+        ast.parse(prompt)
+        return prompt
+    except (SyntaxError, ValueError):
+        pass
+    code, _ = extract_code(prompt, entry_point)
+    return code if code and code.strip() else None
+
+
 def infer_entry(tests):
     """MBPP has no entry_point column: take the first called plain name in the first assert that is
     not a builtin; if every called name is a builtin (MBPP/126 calls its function `sum`), the first one.
@@ -153,6 +186,11 @@ def score(completion_text, tests, entry_point=None, setup_code="", prompt=None, 
     setup_code: dataset imports run before both the candidate and the tests (MBPP ``test_imports``).
     prompt: trusted prompt text. For HumanEval it is run on the trusted side (so helpers it defines,
     like ``poly``, are the dataset's, not the candidate's) and used to complete body-only answers.
+    A prompt that is not plain code (prose, a fenced block) is reduced to the code it contains.
+    When a prompt is supplied with a test program (string tests), the only name bound to the
+    candidate is entry_point: any other name the tests use must come from the prompt, the setup
+    code or the standard library, so a candidate cannot redefine an oracle helper.
+    Raises ValueError for a test program that defines check() without an entry_point.
     """
     t0 = time.monotonic()
     failures, detail = [], {}
@@ -165,7 +203,11 @@ def score(completion_text, tests, entry_point=None, setup_code="", prompt=None, 
         tree, total = build_program(tests, entry_point)
     except SyntaxError as e:
         return GradeResult(0.0, 0, 0, [f"test program does not parse: {e}"], False, False, {"error": "bad tests"})
-    code, how = extract_code(completion_text, entry_point, prompt)
+    prompt_supplied = isinstance(prompt, str) and bool(prompt.strip())
+    prompt_code = _prompt_code(prompt, entry_point) if prompt_supplied else None
+    if prompt_supplied and prompt_code is None:
+        detail["prompt"] = "no parseable code in the supplied prompt"
+    code, how = extract_code(completion_text, entry_point, prompt_code)
     detail["extract"] = how
     if code is None:
         return GradeResult(0.0, 0, total, ["no parseable code"], False, False, detail)
@@ -173,12 +215,8 @@ def score(completion_text, tests, entry_point=None, setup_code="", prompt=None, 
     # Trusted namespace: dataset setup + (HumanEval) the prompt's own definitions.
     ns = {"__name__": "__sg_tests__", "__builtins__": builtins}
     trusted = [setup_code or ""]
-    if prompt and isinstance(prompt, str):
-        try:
-            ast.parse(prompt)
-            trusted.append(prompt)
-        except SyntaxError:
-            pass
+    if prompt_code:
+        trusted.append(prompt_code)
     for src in trusted:
         if src.strip():
             try:
@@ -197,6 +235,12 @@ def score(completion_text, tests, entry_point=None, setup_code="", prompt=None, 
                 free.discard(name)
             except Exception:  # noqa: BLE001
                 pass
+    # Names the tests use that are neither the entry point nor trusted. With a supplied prompt and a
+    # test program, they are oracle helpers the prompt should have defined: never the candidate's.
+    helpers = sorted(free - {entry_point})
+    trusted_only = prompt_supplied and isinstance(tests, str)
+    if helpers:
+        detail["helpers_not_proxied" if trusted_only else "helpers_from_candidate"] = helpers[:10]
 
     status, reasons = {}, {}
     rec = {"ungradable": []}
@@ -220,6 +264,9 @@ def score(completion_text, tests, entry_point=None, setup_code="", prompt=None, 
             failures.append("candidate failed to load: " + detail["load"])
             return GradeResult(0.0, 0, total, failures, True, False, detail)
         for name in sorted(free):
+            if trusted_only and name != entry_point:
+                ns[name] = _Missing(name)
+                continue
             try:
                 kind = sb.lookup(name)
             except ChildDead as e:
@@ -235,13 +282,24 @@ def score(completion_text, tests, entry_point=None, setup_code="", prompt=None, 
         ns["__sg_assert"] = __sg_assert
         try:
             exec(compile(tree, "<tests>", "exec"), ns)
-        except Exception as e:  # noqa: BLE001 -- harness stopped outside an assert; the rest count as failed
+        except Exception as e:  # noqa: BLE001 -- test program stopped outside an assert: no credit (below)
             detail["harness_aborted"] = f"{type(e).__name__}: {e}"[:200]
         calls_ok = sb.calls_ok
         detail["candidate_calls_ok"] = calls_ok
-        if sb.dead_reason:
-            detail["child"] = sb.dead_reason
+        dead = sb.dead_reason
+        if dead:
+            detail["child"] = dead
     passed = sum(1 for i in range(total) if status.get(i) is True)
+    if "harness_aborted" in detail:
+        # The test program stopped outside an assert (a candidate error, timeout or exit in a statement
+        # such as `x = candidate(...)`, or an `assert False` branch). Asserts it already passed may sit
+        # in a loop or check() whose remaining work never ran, so none of them earns credit.
+        failures.append("test program stopped outside an assert: " + detail["harness_aborted"])
+        passed = 0
+    if dead and "harness_aborted" not in detail:
+        failures.append("candidate process died: " + dead)
+        if passed == total:  # the test program swallowed the death: never full marks
+            passed = 0
     for i in range(total):
         if status.get(i) is not True:
             failures.append(f"assert #{i}: " + reasons.get(i, "not reached"))
@@ -251,7 +309,8 @@ def score(completion_text, tests, entry_point=None, setup_code="", prompt=None, 
         detail["ungradable"] = rec["ungradable"][:5]
     sc = (passed / total) if total else 0.0
     detail["seconds"] = round(time.monotonic() - t0, 3)
-    return GradeResult(sc, passed, total, failures[:20], True, bool(total) and passed == total, detail)
+    all_passed = bool(total) and passed == total and "harness_aborted" not in detail and not dead
+    return GradeResult(sc, passed, total, failures[:20], True, all_passed, detail)
 
 
 def self_check(python=None, required_controls=None):

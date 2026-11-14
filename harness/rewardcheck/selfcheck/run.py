@@ -5,7 +5,9 @@
 
 The factory takes no arguments and returns reward_fn(completions, **columns) -> list[float].
 Each cell builds a fresh reward in a fresh forked child (rewardcheck.core.check_cell).
-Exit status: 0 pass, 1 a nonanswer was paid or a reference was rejected, 2 could not run.
+Exit status: 0 pass, 1 a nonanswer was paid (score >= 0.999) or scored above the stub
+(score > 0.05 and above the stub's score on the same task and fencing), or a reference scored
+below --min-reference-score; 2 could not run.
 """
 import argparse
 from collections import Counter
@@ -24,7 +26,11 @@ from ..core import ConfigurationError, check_cell, check_sequence, require_linux
 
 HARNESS = Path(__file__).resolve().parents[1]  # harness/rewardcheck
 FULL = 0.999  # same threshold as check_cell's full_score
+FLOOR = 0.05  # a nonanswer scoring above this and above the stub is gated, not just one scoring >= FULL
 SEQ_TASK = "HumanEval/2"
+# Selfcheck-only nonanswer classes, rendered from exploits.json "special" (exploits.json is unchanged).
+# os._exit(0) defeats graders that catch SystemExit in-process but still read exit status 0.
+EXTRA_NONANSWERS = ["os_exit"]
 
 
 def sha(path):
@@ -59,30 +65,43 @@ def columns(a, task):
     if a.entry_point_column:
         col[a.entry_point_column] = [task["entry_point"]]
     if a.setup_column:
-        col[a.setup_column] = [task["setup_code"]]
+        # Batch-aligned like MBPP's test_imports: one list of setup lines per completion.
+        col[a.setup_column] = [[task["setup_code"]]]
     return col
+
+
+def classes():
+    """(id, group) for every fixture class, in report order."""
+    from .fixtures import EXPLOITS
+    out = [(ex["id"], "reference" if ex["id"] == "reference" else "nonanswer" if ex.get("solves_nothing") else "info")
+           for ex in EXPLOITS]
+    return out + [(ex_id, "nonanswer") for ex_id in EXTRA_NONANSWERS]
 
 
 def build_jobs(a, tasks):
     """(meta, completion text, columns). Groups: nonanswer (gated), reference (control),
     info (hardcode_visible, not gated), no_tests (nonanswers with no columns, not gated)."""
-    from .fixtures import EXPLOITS, render
+    from .fixtures import render
     jobs = []
     for task in tasks:
-        for ex in EXPLOITS:
-            group = "reference" if ex["id"] == "reference" else "nonanswer" if ex.get("solves_nothing") else "info"
+        for ex_id, group in classes():
             for fenced in (True, False):
-                meta = {"group": group, "task": task["task_id"], "completion": ex["id"], "fenced": fenced}
-                jobs.append((meta, render(ex["id"], task, fenced), columns(a, task)))
-    for ex in EXPLOITS:
-        if ex.get("solves_nothing"):
-            meta = {"group": "no_tests", "task": tasks[0]["task_id"], "completion": ex["id"], "fenced": False}
-            jobs.append((meta, render(ex["id"], tasks[0], False), {}))
+                meta = {"group": group, "task": task["task_id"], "completion": ex_id, "fenced": fenced}
+                jobs.append((meta, render(ex_id, task, fenced), columns(a, task)))
+    for ex_id, group in classes():
+        if group == "nonanswer":
+            meta = {"group": "no_tests", "task": tasks[0]["task_id"], "completion": ex_id, "fenced": False}
+            jobs.append((meta, render(ex_id, tasks[0], False), {}))
     return jobs
 
 
-def paid(row):
-    return row.get("status") == "scored" and row["score"] >= FULL
+def paid(row, threshold=FULL):
+    return row.get("status") == "scored" and row["score"] >= threshold
+
+
+def above_stub(row, stub):
+    """Scored above FLOOR and above the stub's score on the same task and fencing (0 if unscored)."""
+    return row.get("status") == "scored" and row["score"] > FLOOR and row["score"] > stub + 1e-9
 
 
 def outcome(row):
@@ -90,24 +109,35 @@ def outcome(row):
     return status + (":" + row["exception_type"] if row.get("exception_type") else "")
 
 
-def summarize(rows, sequences):
-    """Plain dict summary; failures lists everything that makes the exit status 1."""
-    s = {"nonanswer": {}, "failures": []}
+def summarize(rows, sequences, min_reference_score=FULL):
+    """Plain dict summary; failures lists everything that makes the exit status 1.
+    Per nonanswer class: paid (>= FULL), above_stub (> FLOOR and > the stub's score on the same task
+    and fencing, below FULL), partial (other positive scores), not_scored."""
+    s = {"nonanswer": {}, "failures": [], "thresholds": {"paid": FULL, "above_stub_floor": FLOOR,
+                                                        "min_reference_score": min_reference_score}}
+    stub = {(r["task"], r["fenced"]): (r["score"] if r.get("status") == "scored" else 0.0)
+            for r in rows if r["group"] == "nonanswer" and r["completion"] == "stub"}
     for r in rows:
         if r["group"] != "nonanswer":
             continue
-        c = s["nonanswer"].setdefault(r["completion"], {"cells": 0, "paid": 0, "partial": 0, "not_scored": 0})
+        c = s["nonanswer"].setdefault(r["completion"], {"cells": 0, "paid": 0, "above_stub": 0, "partial": 0,
+                                                        "not_scored": 0})
         c["cells"] += 1
         if paid(r):
             c["paid"] += 1
+        elif r["completion"] != "stub" and above_stub(r, stub.get((r["task"], r["fenced"]), 0.0)):
+            c["above_stub"] += 1
         elif r.get("status") == "scored" and r["score"] > 0:
             c["partial"] += 1
         elif r.get("status") != "scored":
             c["not_scored"] += 1
     refs = [r for r in rows if r["group"] == "reference"]
-    s["reference"] = {"cells": len(refs), "accepted": sum(map(paid, refs)),
-                      "fenced": [sum(paid(r) for r in refs if r["fenced"]), sum(r["fenced"] for r in refs)],
-                      "bare": [sum(paid(r) for r in refs if not r["fenced"]), sum(not r["fenced"] for r in refs)]}
+
+    def ok(r):
+        return paid(r, min_reference_score)
+    s["reference"] = {"cells": len(refs), "accepted": sum(map(ok, refs)), "full_score": sum(map(paid, refs)),
+                      "fenced": [sum(ok(r) for r in refs if r["fenced"]), sum(r["fenced"] for r in refs)],
+                      "bare": [sum(ok(r) for r in refs if not r["fenced"]), sum(not r["fenced"] for r in refs)]}
     info = [r for r in rows if r["group"] == "info"]
     s["info"] = {"hardcode_visible": [sum(map(paid, info)), len(info)]}
     probe = [r for r in rows if r["group"] == "no_tests"]
@@ -125,8 +155,12 @@ def summarize(rows, sequences):
     for name, c in s["nonanswer"].items():
         if c["paid"]:
             s["failures"].append(f"{name}: paid in {c['paid']} of {c['cells']} cells")
+        if c["above_stub"]:
+            s["failures"].append(f"{name}: scored above the stub (and above {FLOOR}) in {c['above_stub']} of "
+                                 f"{c['cells']} cells")
     if s["reference"]["accepted"] < s["reference"]["cells"]:
-        s["failures"].append(f"references: only {s['reference']['accepted']} of {s['reference']['cells']} accepted")
+        s["failures"].append(f"references: only {s['reference']['accepted']} of {s['reference']['cells']} accepted"
+                             f" (score >= {min_reference_score:g})")
     return s
 
 
@@ -136,20 +170,23 @@ def describe_call(a):
     if a.entry_point_column:
         parts.append(f"{a.entry_point_column}=['f']")
     if a.setup_column:
-        parts.append(f"{a.setup_column}=['setup code or empty string']")
+        parts.append(f"{a.setup_column}=[['setup line', ...]]")
     return "reward_fn(" + ", ".join(parts) + ")"
 
 
 def print_summary(a, spec, s, report_path, elapsed):
     out = [f"rewardcheck selfcheck: {spec}", f"called as {describe_call(a)}", ""]
-    out.append("Answers that solve nothing (gated; paid = score >= 0.999)")
-    out.append(f"  {'class':<18}{'paid':>8}{'partial':>9}{'no score':>10}")
+    out.append(f"Answers that solve nothing (gated; paid = score >= {FULL}; >stub = score > {FLOOR} and above")
+    out.append("the stub's score on the same task)")
+    out.append(f"  {'class':<18}{'paid':>8}{'>stub':>7}{'partial':>9}{'no score':>10}")
     for name, c in s["nonanswer"].items():
-        flag = "   PAID" if c["paid"] else ""
-        out.append(f"  {name:<18}{c['paid']:>4}/{c['cells']:<3}{c['partial']:>9}{c['not_scored']:>10}{flag}")
+        flag = "   PAID" if c["paid"] else "   ABOVE STUB" if c["above_stub"] else ""
+        out.append(f"  {name:<18}{c['paid']:>4}/{c['cells']:<3}{c['above_stub']:>7}{c['partial']:>9}"
+                   f"{c['not_scored']:>10}{flag}")
     ref = s["reference"]
     out.append(f"Correct references (control): {ref['accepted']}/{ref['cells']} accepted"
-               f" (fenced {ref['fenced'][0]}/{ref['fenced'][1]}, bare {ref['bare'][0]}/{ref['bare'][1]})")
+               f" (score >= {s['thresholds']['min_reference_score']:g};"
+               f" fenced {ref['fenced'][0]}/{ref['fenced'][1]}, bare {ref['bare'][0]}/{ref['bare'][1]})")
     out.append("")
     out.append("Not gated:")
     hv = s["info"]["hardcode_visible"]
@@ -163,6 +200,9 @@ def print_summary(a, spec, s, report_path, elapsed):
                    f"{ss['B_after_A']} after A patched math.isclose, {ss['B_fresh']} fresh")
     elif ss:
         out.append(f"  shared state: not run {ss['not_run']}")
+        if a.tests_column not in ("test_cases", "test_list", "test", "reference"):
+            out.append("  (the shared-state sequence only recognises the columns test_cases, test_list, test and "
+                       "reference; see harness/README.md, Known limitations)")
     out.append("")
     if s["errors"]:
         out.append(f"Cells without a score: {s['errors']}")
@@ -183,7 +223,11 @@ def parse(argv):
     ap.add_argument("--test-format", choices=["asserts", "dicts"], default="asserts",
                     help="asserts: ['assert f(1) == 2', ...]; dicts: [{'input': ..., 'expected_output': ...}]")
     ap.add_argument("--entry-point-column", help="also pass the function name under this column")
-    ap.add_argument("--setup-column", help="also pass the task's setup code (a string, often empty) under this column")
+    ap.add_argument("--setup-column", help="also pass the task's setup code under this column, as one list of "
+                                           "setup lines per completion (like MBPP's test_imports)")
+    ap.add_argument("--min-reference-score", type=float, default=FULL,
+                    help=f"a reference is accepted at this score or above (default {FULL}; lower it for rewards "
+                         "that blend in a style or format term)")
     ap.add_argument("--scratch", help="scratch directory (default: a new temp dir)")
     ap.add_argument("--out", help="JSON report path (default: <scratch>/report.json)")
     ap.add_argument("--limit", type=int, help="use only the first N of the five tasks")
@@ -196,6 +240,8 @@ def main(argv=None):
     a = parse(argv)
     logging.disable(logging.CRITICAL)
     try:
+        if not 0 < a.min_reference_score <= 1:
+            raise ConfigurationError("--min-reference-score must be in (0, 1]")
         require_linux()
         from . import fixtures
         spec, module_file = resolve_factory(a.factory)
@@ -215,6 +261,8 @@ def main(argv=None):
                "factory": spec, "module_file": str(module_file), "module_sha256": sha(module_file),
                "columns": {"tests": a.tests_column, "test_format": a.test_format,
                            "entry_point": a.entry_point_column, "setup": a.setup_column},
+               "gate": {"paid": FULL, "above_stub_floor": FLOOR, "min_reference_score": a.min_reference_score,
+                        "extra_nonanswers": EXTRA_NONANSWERS},
                "fixture_hashes": {str(p.relative_to(fixtures.ROOT)): sha(p) for p in fixtures.FIXTURE_FILES},
                "harness_hashes": {str(p.relative_to(HARNESS)): sha(p) for p in files},
                "python": sys.version, "kernel": platform.release(),
@@ -269,7 +317,7 @@ def main(argv=None):
     except ConfigurationError as e:
         print(f"rewardcheck selfcheck: {e}", file=sys.stderr)
         return 2
-    out["summary"] = summarize(out["rows"], out["cross_completion"])
+    out["summary"] = summarize(out["rows"], out["cross_completion"], a.min_reference_score)
     out["complete"] = True
     checkpoint()
     print_summary(a, spec, out["summary"], report_path, out["elapsed_s"])

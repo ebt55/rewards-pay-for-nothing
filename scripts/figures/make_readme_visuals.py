@@ -143,10 +143,10 @@ def chart(theme, rows):
     W, H = 8.4, 5.2
     fig = plt.figure(figsize=(W, H))
     L = 0.035  # left margin (figure fraction)
-    fig.text(L, 0.942, "Released graders pay none of the 111 exit tricks the old one paid",
+    fig.text(L, 0.942, "Released graders pay none of the 111 early-exit answers the old one paid",
              fontsize=13, fontweight="bold", color=t["ink"], va="baseline")
-    fig.text(L, 0.886, "Answers a 3.35B model wrote in 10 GRPO training runs on MBPP, re-graded on 14 Nov 2026. "
-             "Paid = score ≥ 0.999.", fontsize=8.8, color=t["ink2"], va="baseline")
+    fig.text(L, 0.886, "MBPP answers a 3.35B model wrote in GRPO runs whose prompt described the grading rule "
+             "or exit hole. Paid = score ≥ 0.999.", fontsize=8.8, color=t["ink2"], va="baseline")
     items = [(OLD[theme], "Old grader: AlignTune code_execution 57e9a95, the version used in training"),
              (NEW[theme], "Released graders: AlignTune ff59f10, SafeTune merge 36b2142")]
     for i, (c, s) in enumerate(items):
@@ -166,7 +166,7 @@ def chart(theme, rows):
     hx = (L - axl) / axw  # data x of the figure's left margin
 
     ys = {"a": 0.55, "b": 2.0, "control": 4.1}
-    for y, s in ((-0.38, "Exit tricks found in training answers"), (3.22, "Control: ordinary correct answers")):
+    for y, s in ((-0.38, "Early-exit answers from hinted training runs"), (3.22, "Control: ordinary correct answers")):
         ax.text(hx, y, s, fontsize=8.8, fontweight="bold", color=t["ink2"], va="center", ha="left", clip_on=False)
     ax.plot([hx, (0.965 - axl) / axw], [2.93, 2.93], color=t["grid"], lw=0.9, clip_on=False, zorder=1)
 

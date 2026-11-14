@@ -13,4 +13,4 @@ from .sandbox import DEFAULT_REQUIRED_CONTROLS, IsolationConfigurationError
 
 __all__ = ["score", "GradeResult", "extract_code", "self_check", "DEFAULT_REQUIRED_CONTROLS",
            "IsolationConfigurationError"]
-__version__ = "0.1.2"
+__version__ = "0.1.3"

@@ -1,5 +1,10 @@
 # Quick start check, 14 Nov 2026
 
+> Note (14 Nov 2026, later the same day): this transcript predates the `os_exit` class added to the
+> self-check. There are now eight gated classes, so the no-tests lines read 0/8 (not 0/7), the naive
+> example is also paid on `os_exit`, and the harness suite has 28 tests (not 25). Current expected
+> output: `harness/README.md`. The transcript below is kept as run.
+
 Clean copy of the repository on WSL2 Ubuntu ext4 (`~/rc-clean-2026-11-14/`), made with rsync
 excluding `.codex/`, `private/`, `held-back/`, `jobs/`, handoff/review notes, `__pycache__/`,
 `.env*` and token files. The README commands were run verbatim from the copy's root in a shell

@@ -85,6 +85,7 @@ seeds per arm.
   `tables.md`.
 - Caption: Held-out pass@1 at steps 0, 25, 50, 75 and 100 for all 10 runs: MBPP, MBPP with the hint, and HumanEval.
   MBPP has 100 tasks (gaps under about 0.1 are within noise); HumanEval has 164 (SE ≈ 0.04).
+  Erratum (14 Nov 2026): the "gaps under ~0.1 are within noise" rule in this caption and in the Figure 4 subtitle is withdrawn. The same tasks are scored at every step, so the paired change needs its own uncertainty, which was not computed; see `CLAIMS.md` E01.
 - Key numbers:
   - 8 runs: MBPP 0.44 → 0.50–0.56 (+0.06 to +0.12, up in all 8).
   - 8 runs: HumanEval 0.463 → 0.427–0.463 (down in 7, flat in 1).

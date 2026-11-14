@@ -339,7 +339,7 @@ def _grade_from_parent_with_token(fs_mode):
     /proc/<pid>/environ shows), grading a candidate that tries to read that file."""
     import subprocess
     env = {"PATH": os.environ.get("PATH", "/usr/bin:/bin"), "HF_TOKEN": FAKE, "HUGGING_FACE_HUB_TOKEN": FAKE}
-    out = subprocess.run([sys.executable, "-I", "-c", _PARENT, str(ROOT), fs_mode, _PROBE], env=env,
+    out = subprocess.run([sys.executable, "-I", "-B", "-c", _PARENT, str(ROOT), fs_mode, _PROBE], env=env,
                          capture_output=True, text=True, timeout=120)
     return json.loads(out.stdout.strip().splitlines()[-1])
 
